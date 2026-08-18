@@ -129,5 +129,3 @@ Desarrollado para NOVA Personal - Sistema de Nómina Inteligente
 Prueba de trabajo colaborativo con Git.
 
 Prueba realizada completamente desde Visual Studio Code.
-
-
