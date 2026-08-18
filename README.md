@@ -138,8 +138,15 @@ Prueba 2 para ver si se pueden hacer varios cambios
 
 Nuevos cambios paso 3 y 4
 
+CAmbios en la misma rama w
+
+Luego lo borro y siempre no pero tambien lo guardo
+
+despues los siguientes cambios de copy paste
+
 Los Nuevos cambios ya estando guardand
 
 luego otra vez volver a guardar w
 
 asi porque es como yo me acostumbro
+
