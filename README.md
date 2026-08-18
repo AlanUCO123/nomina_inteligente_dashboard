@@ -129,3 +129,6 @@ Desarrollado para NOVA Personal - Sistema de Nómina Inteligente
 Prueba de trabajo colaborativo con Git.
 
 Borrado para comprobar todo desde mi rama w
+
+
+Nuevo cambio de prueba.
