@@ -129,3 +129,11 @@ Desarrollado para NOVA Personal - Sistema de Nómina Inteligente
 Prueba de trabajo colaborativo con Git.
 
 Prueba realizada completamente desde Visual Studio Code.
+
+Esta línea se agregó para probar el flujo de Git desde Visual Studio Code.
+
+ESTA NUEVA LINEA ES PARA OTRO CAMBIO NUEVO EN EL ARCHIVO O PARA PROBAR LA RAMA NUEVA
+
+Prueba 2 para ver si se pueden hacer varios cambios 
+
+Nuevos cambios paso 3 y 4
