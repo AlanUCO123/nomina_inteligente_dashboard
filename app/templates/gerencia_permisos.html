@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Permisos por autorizar
+{% endblock %}
+
+{% block breadcrumb %}
+Gerencia / Autorizar permisos
+{% endblock %}
+
+
+{% block content %}
+
+<div class="ger-page">
+
+    <div class="ger-page-header">
+
+        <div>
+            <span class="ger-eyebrow">
+                GERENCIA
+            </span>
+
+            <h1>
+                Permisos por autorizar
+            </h1>
+
+            <p>
+                Solicitudes pendientes del personal
+                perteneciente a tu gerencia.
+            </p>
+        </div>
+
+        <div class="ger-readonly-badge">
+            🛡️
+            <span>
+                <strong>Modo consulta</strong>
+                <small>
+                    Las acciones todavía están bloqueadas
+                </small>
+            </span>
+        </div>
+
+    </div>
+
+
+    <section class="ger-summary-grid">
+
+        <article>
+            <span>Pendientes</span>
+            <strong>{{ resumen.total }}</strong>
+        </article>
+
+        <article>
+            <span>Vacaciones</span>
+            <strong>{{ resumen.vacaciones }}</strong>
+        </article>
+
+        <article>
+            <span>Permisos</span>
+            <strong>{{ resumen.permisos }}</strong>
+        </article>
+
+        <article>
+            <span>Permisos parciales</span>
+            <strong>{{ resumen.parciales }}</strong>
+        </article>
+
+    </section>
+
+
+    <section class="ger-card">
+
+        <div class="ger-card-header">
+            <div>
+                <h2>
+                    Solicitudes pendientes
+                </h2>
+
+                <p>
+                    Personal dentro de tu alcance
+                    como gerente.
+                </p>
+            </div>
+        </div>
+
+
+        {% if solicitudes %}
+
+        <div class="ger-permission-list">
+
+            {% for s in solicitudes %}
+
+            <a
+                href="/gerencia/permisos/{{ s.ID_PROCESS }}"
+                class="ger-permission-row"
+            >
+
+                <div class="ger-permission-icon">
+                    {{ s.tipo_icono }}
+                </div>
+
+
+                <div class="ger-permission-main">
+
+                    <div class="ger-permission-title">
+
+                        <strong>
+                            {{ s.tipo_nombre }}
+                        </strong>
+
+                        <span>
+                            #{{ s.ID_PROCESS }}
+                        </span>
+
+                    </div>
+
+
+                    <h3>
+                        {{ s.nombre_empleado }}
+                    </h3>
+
+
+                    <div class="ger-permission-meta">
+
+                        <span>
+                            No. {{ s.numero_empleado }}
+                        </span>
+
+                        <span>
+                            {{ s.departamento }}
+                        </span>
+
+                    </div>
+
+
+                    <p>
+                        {% if s.fecha_inicio_texto == s.fecha_final_texto %}
+
+                            {{ s.fecha_inicio_texto }}
+
+                        {% else %}
+
+                            {{ s.fecha_inicio_texto }}
+                            →
+                            {{ s.fecha_final_texto }}
+
+                        {% endif %}
+                    </p>
+
+
+                    {% if s.hora_inicio_texto or s.hora_final_texto %}
+
+                    <small>
+                        🕒
+                        {{ s.hora_inicio_texto or '—' }}
+                        →
+                        {{ s.hora_final_texto or '—' }}
+                    </small>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="ger-permission-side">
+
+                    {% if s.hace %}
+                    <small>
+                        {{ s.hace }}
+                    </small>
+                    {% endif %}
+
+                    <span class="ger-view-button">
+                        Ver detalle →
+                    </span>
+
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="ger-empty">
+
+            <div>✅</div>
+
+            <strong>
+                No tienes permisos pendientes
+            </strong>
+
+            <p>
+                Cuando un empleado de tu gerencia
+                tenga una solicitud pendiente,
+                aparecerá aquí.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

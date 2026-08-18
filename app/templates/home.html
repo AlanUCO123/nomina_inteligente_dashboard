@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA Personal - Inicio{% endblock %}
+
+{% block breadcrumb %}Asistencia / Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Dashboard NOVA Personal</h1>
+    <p>Consulta general de asistencia, tiempo extra y datos del empleado.</p>
+</div>
+
+<div class="card">
+    <div class="employee-summary">
+        <div class="employee-avatar">
+            👤
+        </div>
+        <div class="employee-main">
+            <h2>{{ mis_datos.nombre_completo if mis_datos else nombre_usuario }}</h2>
+            <p>
+                <strong>ID:</strong> {{ numero_empleado }}
+                &nbsp; | &nbsp;
+                <strong>Depto:</strong> {{ mis_datos.deptop if mis_datos else '-' }}
+            </p>
+            <p>
+                <strong>Puesto:</strong> {{ mis_datos.puesto_intelisis if mis_datos else '-' }}
+            </p>
+            <p>
+                <strong>Categoría:</strong> {{ mis_datos.categoria if mis_datos else '-' }}
+                &nbsp;
+                <span class="badge-green">Activo</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div>
+            <span>Personal con asistencia</span>
+            <strong>{{ kpis.empleados or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>Jornadas en tiempo</span>
+            <strong>{{ kpis.en_tiempo or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div>
+            <span>Retardos</span>
+            <strong>{{ kpis.retardos or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">❌</div>
+        <div>
+            <span>Faltas</span>
+            <strong>{{ kpis.faltas or 0 }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="grid-2 mt-24">
+    <div class="card">
+        <h3>Información del empleado</h3>
+        {% if mis_datos %}
+            <p><strong>Nombre:</strong> {{ mis_datos.nombre_completo }}</p>
+            <p><strong>No. empleado:</strong> {{ numero_empleado }}</p>
+            <p><strong>Departamento:</strong> {{ mis_datos.deptop }}</p>
+            <p><strong>Puesto:</strong> {{ mis_datos.puesto_intelisis }}</p>
+            <p><strong>Categoría:</strong> {{ mis_datos.categoria }}</p>
+            <p><strong>Jefe directo:</strong> {{ mis_datos.nombre_reporta_a }}</p>
+            <p><strong>Gerente:</strong> {{ mis_datos.nombre_gerente }}</p>
+        {% else %}
+            <p>No se encontró información laboral ligada al usuario.</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h3>Accesos rápidos</h3>
+
+        <div class="quick-actions">
+
+            <a class="btn-secondary" href="/asistencia/mis-checadas">
+                Mis checadas
+            </a>
+
+            <a class="btn-secondary" href="/solicitudes">
+                Vacaciones y permisos
+            </a>
+
+            {% if "SUPERVISOR" in roles or "GERENTE" in roles %}
+
+            <a class="btn-secondary" href="/asistencia/reporte-diario">
+                Reporte diario
+            </a>
+
+            {% endif %}
+
+            {% if es_admin
+                or (
+                    "DIRECTOR" not in roles
+                    and (
+                        es_gerente
+                        or es_supervisor
+                    )
+                )
+            %}
+                <a class="btn-primary" href="/he-control">
+                    Control HE en línea
+                </a>
+            {% endif %}
+
+            {% if es_admin
+            or es_supervisor
+            or es_gerente
+            or "DIRECTOR" in roles %}
+                <a class="btn-secondary"
+                href="/asistencia/personal">
+                    Mi equipo
+                </a>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="grid-3 mt-24">
+    <div class="card">
+        <h3>Vista actual</h3>
+
+        {% if es_admin %}
+            <p>
+                Vista administrativa.
+                Los indicadores muestran la asistencia general
+                correspondiente al periodo actual.
+            </p>
+
+        {% elif "DIRECTOR" in roles %}
+            <p>
+                Vista de director.
+                Los indicadores corresponden al personal
+                perteneciente a tu dirección.
+            </p>
+
+        {% elif es_gerente %}
+            <p>
+                Vista de gerente.
+                Los indicadores corresponden al personal
+                perteneciente a tu gerencia.
+            </p>
+
+        {% elif es_supervisor %}
+            <p>
+                Vista de supervisor.
+                Los indicadores corresponden únicamente
+                al personal que te reporta directamente.
+            </p>
+
+        {% else %}
+            <p>
+                Vista de empleado.
+                Los indicadores corresponden únicamente
+                a tu propia información.
+            </p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h3>Jerarquía</h3>
+        {% if mis_datos %}
+            <p><strong>Jefe:</strong> {{ mis_datos.nombre_reporta_a or '-' }}</p>
+            <p><strong>Gerente:</strong> {{ mis_datos.nombre_gerente or '-' }}</p>
+            <p><strong>Director:</strong> {{ mis_datos.nombre_director or '-' }}</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h3>Sesión</h3>
+        <p><strong>Usuario:</strong> {{ login_user }}</p>
+        <p><strong>Roles:</strong> {{ roles | join(", ") }}</p>
+        <p><a class="btn-secondary" href="/logout">Cerrar sesión</a></p>
+    </div>
+</div>
+{% endblock %}

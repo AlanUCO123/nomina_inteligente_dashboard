@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Traspaso de Personal
+{% endblock %}
+
+{% block breadcrumb %}
+Gerencia / Traspaso de personal
+{% endblock %}
+
+
+{% block content %}
+
+<div class="ger-page">
+
+    <div class="ger-page-header">
+
+        <div>
+            <span class="ger-eyebrow">
+                GERENCIA
+            </span>
+
+            <h1>
+                🔄 Traspaso de Personal
+            </h1>
+
+            <p>
+                Consulta tus solicitudes de traspaso
+                y prepara nuevos movimientos.
+            </p>
+        </div>
+
+
+        <a
+            href="/gerencia/traspasos/nuevo"
+            class="ger-btn ger-btn-primary"
+        >
+            + Nuevo traspaso
+        </a>
+
+    </div>
+
+
+    <section class="ger-summary-grid ger-summary-three">
+
+        <article>
+            <span>Pendientes</span>
+            <strong>
+                {{ resumen.pendientes }}
+            </strong>
+        </article>
+
+        <article>
+            <span>Autorizados</span>
+            <strong>
+                {{ resumen.autorizados }}
+            </strong>
+        </article>
+
+        <article>
+            <span>Rechazados</span>
+            <strong>
+                {{ resumen.rechazados }}
+            </strong>
+        </article>
+
+    </section>
+
+
+    <section class="ger-card">
+
+        <div class="ger-card-header">
+
+            <div>
+                <h2>
+                    Historial de traspasos
+                </h2>
+
+                <p>
+                    Solicitudes realizadas por tu usuario.
+                </p>
+            </div>
+
+
+            <div class="ger-readonly-inline">
+                🛡 Solo lectura
+            </div>
+
+        </div>
+
+
+        {% if traspasos %}
+
+        <div class="ger-table-wrap">
+
+            <table class="ger-table">
+
+                <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Estatus</th>
+                        <th>Origen</th>
+                        <th>Destino</th>
+                        <th>Motivo</th>
+                        <th>Registro</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for t in traspasos %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ t.nombre_empleado }}
+                            </strong>
+
+                            <small>
+                                No. {{ t.numero_empleado }}
+                                · #{{ t.ID_PROCESS }}
+                            </small>
+                        </td>
+
+
+                        <td>
+                            <span class="
+                                ger-status
+                                {{ t.estado_clase }}
+                            ">
+                                {{ t.estado_nombre }}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            {{ t.idAreaOrigenFk or '—' }}
+                        </td>
+
+
+                        <td>
+                            {{ t.idAreaDestinoFk or '—' }}
+                        </td>
+
+
+                        <td class="ger-table-reason">
+                            {{ t.descripcion or '—' }}
+                        </td>
+
+
+                        <td>
+                            {{ t.registro_texto }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="ger-empty">
+
+            <div>🔄</div>
+
+            <strong>
+                No hay traspasos
+            </strong>
+
+            <p>
+                No se encontraron solicitudes
+                realizadas por este gerente.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

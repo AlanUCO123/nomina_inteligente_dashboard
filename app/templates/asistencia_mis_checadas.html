@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA Personal - Mis checadas{% endblock %}
+{% block breadcrumb %}Asistencia / Mis checadas{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Mis checadas</h1>
+    <p>Consulta semanal de entradas, salidas, incidencias y tiempo extra.</p>
+</div>
+
+<div class="card">
+    <div class="employee-summary">
+        <div class="employee-avatar">
+            👤
+        </div>
+
+        <div class="employee-main">
+            <h2>{{ mis_datos.nombre_completo if mis_datos else nombre_usuario }}</h2>
+            <p>
+                <strong>ID:</strong>
+                {{ mis_datos.numero_empleado if mis_datos else numero_empleado }}
+                &nbsp; | &nbsp;
+                <strong>Depto:</strong> {{ mis_datos.deptop if mis_datos else '-' }}
+            </p>
+            <p>
+                <strong>Puesto:</strong> {{ mis_datos.puesto_intelisis if mis_datos else '-' }}
+            </p>
+            <p>
+                <strong>Categoría:</strong> {{ mis_datos.categoria if mis_datos else '-' }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-18">
+    <div class="section-header">
+        <div>
+            <h3>Filtros</h3>
+            <p>Selecciona el rango de fechas a consultar.</p>
+        </div>
+    </div>
+
+    <form method="get" action="/asistencia/mis-checadas" class="filters-grid">
+
+        <input
+            type="hidden"
+            name="numero_empleado"
+            value="{{ mis_datos.numero_empleado if mis_datos else numero_empleado }}"
+        >
+
+        <div class="form-group">
+            <label>Fecha inicio</label>
+            <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
+        </div>
+
+        <div class="form-group">
+            <label>Fecha fin</label>
+            <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+        </div>
+
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button class="btn-primary" type="submit">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>En tiempo</span>
+            <strong>{{ kpis.dias_en_tiempo or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div>
+            <span>Retardos</span>
+            <strong>{{ kpis.retardos or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">❌</div>
+        <div>
+            <span>Faltas</span>
+            <strong>{{ kpis.faltas or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⏱</div>
+        <div>
+            <span>HE final</span>
+            <strong>{{ kpis.he_final or 0 }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🏠</div>
+        <div>
+            <span>Descansos</span>
+            <strong>{{ kpis.descansos or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🌴</div>
+        <div>
+            <span>Vacaciones</span>
+            <strong>{{ kpis.vacaciones or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">📄</div>
+        <div>
+            <span>Permisos</span>
+            <strong>{{ kpis.permisos or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🚪</div>
+        <div>
+            <span>Sin salida</span>
+            <strong>{{ kpis.sin_salida or 0 }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Detalle de checadas</h3>
+            <p>Entradas, salidas y estatus diario del periodo seleccionado.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Entrada esperada</th>
+                    <th>Entrada real</th>
+                    <th>Salida esperada</th>
+                    <th>Salida real</th>
+                    <th>Estatus</th>
+
+                    <th>Incidencia nómina</th>
+                    <th>Horas descuento</th>
+                    <th>Motivo nómina</th>
+                    <th>Semáforo</th>
+
+                    <th>HE detectada</th>
+                    <th>HE final</th>
+                    <th>Estatus HE</th>
+                    <th>Observación</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for c in checadas %}
+                <tr>
+
+                    <td>{{ c.fecha_operativa }}</td>
+
+                    <td>{{ c.entrada_esperada or '-' }}</td>
+
+                    <td>
+                        {% if c.checada_entrada_valida %}
+                            <strong>{{ c.checada_entrada_valida }}</strong>
+                        {% elif c.primera_checada %}
+                            <strong>{{ c.primera_checada }}</strong>
+                        {% else %}
+                            <strong>-</strong>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ c.salida_esperada or '-' }}</td>
+
+                    <td>
+                        {% if c.checada_salida_valida %}
+                            <strong>{{ c.checada_salida_valida }}</strong>
+                        {% else %}
+                            <strong>-</strong>
+                        {% endif %}
+                    </td>
+
+
+                    <!-- ESTATUS -->
+                    <td>
+
+                        {# =========================================
+                        FECHAS FUTURAS
+                        ========================================= #}
+
+                        {% if c.es_futuro %}
+
+                            <span class="badge badge-gray">
+                                PENDIENTE ENTRADA
+                            </span>
+
+                            <br>
+                            <small>
+                                La jornada aún no se determina
+                            </small>
+
+
+                        {# =========================================
+                        PRESENTE Y EN TIEMPO
+                        ========================================= #}
+
+                        {% elif c.estatus_ejecutivo == 'PRESENTE_EN_TIEMPO' %}
+
+                            <span class="badge badge-green">
+                                PRESENTE EN TIEMPO
+                            </span>
+
+                            <br>
+
+                            {% if c.checada_salida_valida %}
+
+                                <small>
+                                    Entrada y salida registradas
+                                </small>
+
+                            {% else %}
+
+                                <small>
+                                    Pendiente de salida
+                                </small>
+
+                            {% endif %}
+
+
+                        {# =========================================
+                        PRESENTE CON RETARDO
+                        ========================================= #}
+
+                        {% elif c.estatus_ejecutivo == 'PRESENTE_CON_RETARDO' %}
+
+                            <span class="badge badge-yellow">
+                                PRESENTE CON RETARDO
+                            </span>
+
+                            <br>
+
+                            {% if c.checada_salida_valida %}
+
+                                <small>
+                                    Entrada posterior al horario esperado
+                                </small>
+
+                            {% else %}
+
+                                <small>
+                                    Retardo registrado · Pendiente de salida
+                                </small>
+
+                            {% endif %}
+
+
+                        {# =========================================
+                        SIN ENTRADA
+                        HOY O UN DÍA YA TRANSCURRIDO
+                        ========================================= #}
+
+                        {% elif c.estatus_ejecutivo == 'SIN_ENTRADA' %}
+
+                            <span class="badge badge-red">
+                                SIN ENTRADA
+                            </span>
+
+                            <br>
+
+                            <small>
+                                Sin checada de entrada
+                            </small>
+
+
+                        {# =========================================
+                        SIN SALIDA
+                        ========================================= #}
+
+                        {% elif c.estatus_ejecutivo == 'SIN_SALIDA' %}
+
+                            <span class="badge badge-yellow">
+                                SIN SALIDA
+                            </span>
+
+                            <br>
+
+                            <small>
+                                Sin checada de salida
+                            </small>
+
+
+                        {# =========================================
+                        DESCANSO
+                        ========================================= #}
+
+                        {% elif c.estatus_ejecutivo in ['DESCANSO', 'DESCANSO_CON_HE']
+                            or c.estatus_asistencia == 'DESCANSO' %}
+
+                            <span class="badge badge-green">
+                                DESCANSO
+                            </span>
+
+                            <br>
+
+                            <small>
+                                Día de descanso
+                            </small>
+
+
+                        {# =========================================
+                        VACACIONES
+                        ========================================= #}
+
+                        {% elif c.estatus_ejecutivo == 'VACACIONES'
+                            or c.estatus_asistencia == 'VACACIONES'
+                            or c.tipo_permiso == 'VACACIONES' %}
+
+                            <span class="badge badge-blue">
+                                VACACIONES
+                            </span>
+
+                            <br>
+
+                            <small>
+                                {{ c.permiso_nombre or 'Vacaciones autorizadas' }}
+                            </small>
+
+
+                        {# =========================================
+                        PERMISOS
+                        ========================================= #}
+
+                        {% elif c.tipo_permiso %}
+
+                            <span class="badge badge-blue">
+                                {{ (c.estatus_ejecutivo or 'PERMISO') | replace('_', ' ') }}
+                            </span>
+
+                            <br>
+
+                            <small>
+                                {{ c.permiso_nombre or 'Permiso autorizado' }}
+                            </small>
+
+
+                        {# =========================================
+                        RESPALDO DE ESTADOS ANTIGUOS
+                        ========================================= #}
+
+                        {% elif c.estatus_asistencia == 'EN_TIEMPO' %}
+
+                            <span class="badge badge-green">
+                                EN TIEMPO
+                            </span>
+
+
+                        {% elif c.estatus_asistencia == 'RETARDO' %}
+
+                            <span class="badge badge-yellow">
+                                RETARDO
+                            </span>
+
+
+                        {% elif c.estatus_asistencia in ['FALTA', 'FALTA_ENTRADA'] %}
+
+                            <span class="badge badge-red">
+                                SIN ENTRADA
+                            </span>
+
+                            <br>
+
+                            <small>
+                                Sin checada de entrada
+                            </small>
+
+
+                        {% else %}
+
+                            <span class="badge badge-gray">
+                                {{ c.estatus_ejecutivo or c.estatus_asistencia or '-' }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- INCIDENCIA NÓMINA -->
+                    <td>
+
+                        {% if c.tipo_incidencia_nomina %}
+
+                            <span class="badge badge-gray">
+                                {{ c.tipo_incidencia_nomina }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-muted">-</span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- HORAS DESCUENTO -->
+                    <td>
+
+                        {% if c.horas_a_descontar and c.horas_a_descontar > 0 %}
+
+                            <strong>
+                                {{ "%.2f"|format(c.horas_a_descontar) }} h
+                            </strong>
+
+                        {% else %}
+
+                            <span class="text-muted">-</span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- MOTIVO NÓMINA -->
+                    <td>
+
+                        {% if c.motivo_descuento %}
+
+                            {{ c.motivo_descuento }}
+
+                        {% else %}
+
+                            <span class="text-muted">-</span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- SEMÁFORO -->
+                    <td>
+
+                        {% if c.es_futuro %}
+
+                            <span class="badge badge-gray">
+                                ● PENDIENTE
+                            </span>
+
+                        {% elif c.semaforo == 'VERDE' %}
+
+                            <span class="badge badge-green">
+                                ● VERDE
+                            </span>
+
+                        {% elif c.semaforo == 'AMARILLO' %}
+
+                            <span class="badge badge-yellow">
+                                ● AMARILLO
+                            </span>
+
+                        {% elif c.semaforo == 'ROJO' %}
+
+                            <span class="badge badge-red">
+                                ● ROJO
+                            </span>
+
+                        {% elif c.semaforo %}
+
+                            <span class="badge badge-gray">
+                                {{ c.semaforo }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-muted">-</span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- HORAS EXTRA -->
+                    <td>
+                        {{ "%.2f"|format(c.horas_extra_detectadas or 0) }}
+                    </td>
+
+                    <td>
+                        <strong>
+                            {{ "%.2f"|format(c.horas_finales or 0) }}
+                        </strong>
+                    </td>
+
+
+                    <!-- ESTATUS HE -->
+                    <td>
+
+                        {% if c.estatus_he == 'PENDIENTE' %}
+
+                            <span class="badge badge-yellow">
+                                PENDIENTE
+                            </span>
+
+                        {% elif c.estatus_he == 'CONFIRMADA' %}
+
+                            <span class="badge badge-green">
+                                CONFIRMADA
+                            </span>
+
+                        {% elif c.estatus_he == 'RECHAZADA' %}
+
+                            <span class="badge badge-red">
+                                RECHAZADA
+                            </span>
+
+                        {% elif c.estatus_he %}
+
+                            <span class="badge badge-gray">
+                                {{ c.estatus_he }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="text-muted">-</span>
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <!-- OBSERVACIÓN -->
+                    <td>
+                        {{ c.observacion_sistema or c.observacion_ejecutiva or '-' }}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

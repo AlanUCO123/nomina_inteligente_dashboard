@@ -1,0 +1,879 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA Personal - Solicitar Vacaciones
+{% endblock %}
+
+{% block breadcrumb %}
+Solicitudes / Solicitar Vacaciones
+{% endblock %}
+
+
+{% block content %}
+
+<div class="vac-page">
+
+    <!-- =====================================================
+         ENCABEZADO
+         ===================================================== -->
+
+    <div class="vac-header">
+
+        <div>
+
+            <span class="vac-eyebrow">
+                NUEVA SOLICITUD
+            </span>
+
+            <h1>
+                Solicitar Vacaciones
+            </h1>
+
+            <p>
+                Selecciona el periodo que deseas solicitar.
+            </p>
+
+        </div>
+
+
+        <div class="vac-safe-badge">
+
+            <span>🛡️</span>
+
+            <div>
+                <strong>
+                    Modo validación
+                </strong>
+
+                <small>
+                    Todavía no se guarda la solicitud
+                </small>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+        INFORMACIÓN DEL EMPLEADO
+        ===================================================== -->
+
+    {% if empleado_portal %}
+
+    <section class="vac-employee-card">
+
+        <div class="vac-avatar">
+            {{ empleado_portal.nombreCompleto[:1] }}
+        </div>
+
+
+        <div class="vac-employee-main">
+
+            <span>
+                Empleado
+            </span>
+
+            <strong>
+                {{ empleado_portal.nombreCompleto }}
+            </strong>
+
+            <small>
+                No. {{ empleado_portal.numeroEmpleado }}
+            </small>
+
+        </div>
+
+
+        {% if vacaciones_resumen %}
+
+        <div class="vac-employee-department">
+
+            <span>
+                Departamento
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.departamento }}
+            </strong>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+
+    {% if error_vacaciones %}
+
+    <div class="vac-alert-error">
+        ⚠️ {{ error_vacaciones }}
+    </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+        RESUMEN REAL DE VACACIONES
+        ===================================================== -->
+
+    {% if vacaciones_resumen %}
+
+    <section class="vac-summary-card">
+
+
+        <div class="vac-summary-item">
+
+            <span>
+                📅 Aniversario
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.aniversario }}
+            </strong>
+
+            <small>
+                {{ vacaciones_resumen.antiguedad_anios }}
+                años
+            </small>
+
+        </div>
+
+
+        <div class="vac-summary-item">
+
+            <span>
+                👥 Supervisor
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.supervisor }}
+            </strong>
+
+        </div>
+
+
+        <div class="vac-summary-item">
+
+            <span>
+                🏖️ Días Programados
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.dias_programados }}
+            </strong>
+
+        </div>
+
+
+        <div class="vac-summary-item">
+
+            <span>
+                🏖️ Días Reales
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.dias_reales }}
+            </strong>
+
+        </div>
+
+
+        <div class="vac-summary-item">
+
+            <span>
+                🏖️ Días Acumulados
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.dias_acumulados }}
+            </strong>
+
+        </div>
+
+
+        <div class="vac-summary-item featured">
+
+            <span>
+                ✓ Total disponibles
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.total_disponibles }}
+            </strong>
+
+        </div>
+
+
+        <div class="vac-summary-item">
+
+            <span>
+                📆 Días InHábiles
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.dias_inhabiles }}
+            </strong>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         ERROR
+         ===================================================== -->
+
+    {% if error %}
+
+    <div class="vac-alert-error">
+        ⚠️ {{ error }}
+    </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         FORMULARIO
+         ===================================================== -->
+
+    <section class="vac-form-card">
+
+        <div class="vac-card-header">
+
+            <div>
+
+                <span>
+                    PERIODO DE VACACIONES
+                </span>
+
+                <h2>
+                    Selecciona tus fechas
+                </h2>
+
+                <p>
+                    Indica la fecha inicial y final de tu solicitud.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form
+            method="post"
+            action="/solicitudes/vacaciones/validar"
+            class="vac-form"
+        >
+
+            <div class="vac-field">
+
+                <label for="fecha_inicio">
+                    Fecha inicial
+                </label>
+
+                <input
+                    type="date"
+                    id="fecha_inicio"
+                    name="fecha_inicio"
+
+                    min="{{ hoy_iso }}"
+
+                    value="{{
+                        preview.fecha_inicio
+                        if preview
+                        else ''
+                    }}"
+
+                    required
+                >
+
+            </div>
+
+
+            <div class="vac-arrow">
+                →
+            </div>
+
+
+            <div class="vac-field">
+
+                <label for="fecha_final">
+                    Fecha final
+                </label>
+
+                <input
+                    type="date"
+                    id="fecha_final"
+                    name="fecha_final"
+
+                    min="{{ hoy_iso }}"
+
+                    value="{{
+                        preview.fecha_final
+                        if preview
+                        else ''
+                    }}"
+
+                    required
+                >
+
+            </div>
+
+            <!-- =====================================================
+                RESUMEN EN VIVO DEL PERIODO
+                ===================================================== -->
+
+            <div
+                class="vac-live-summary"
+                id="vac_live_summary"
+                data-disponibles="{{
+                    vacaciones_resumen.total_disponibles
+                    if vacaciones_resumen
+                    else 0
+                }}"
+            >
+
+                <div class="vac-live-item">
+
+                    <span>
+                        Días hábiles seleccionados
+                    </span>
+
+                    <strong id="vac_dias_habiles">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="vac-live-item">
+
+                    <span>
+                        Disponibles después
+                    </span>
+
+                    <strong id="vac_disponibles_despues">
+                        {{
+                            vacaciones_resumen.total_disponibles
+                            if vacaciones_resumen
+                            else 0
+                        }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="vac-form-actions">
+
+                <a
+                    href="/solicitudes"
+                    class="vac-btn vac-btn-secondary"
+                >
+                    Cancelar
+                </a>
+
+
+                <button
+                    type="submit"
+                    id="btn_validar_vacaciones"
+                    class="vac-btn vac-btn-primary"
+                    disabled
+                >
+                    Validar solicitud
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <div class="vac-info">
+
+            <span>ℹ️</span>
+
+            <p>
+                En esta etapa NOVA únicamente revisará las
+                fechas y posibles cruces con vacaciones
+                existentes. No se creará ninguna solicitud.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RESULTADO DE VALIDACIÓN
+         ===================================================== -->
+
+    {% if preview %}
+
+    <section class="vac-preview-card">
+
+        <div class="vac-preview-header">
+
+            <div>
+
+                <span>
+                    RESULTADO
+                </span>
+
+                <h2>
+                    Validación del periodo
+                </h2>
+
+            </div>
+
+
+            {% if preview.total_conflictos == 0 %}
+
+            <div class="vac-preview-status success">
+                ✓ Sin cruces detectados
+            </div>
+
+            {% else %}
+
+            <div class="vac-preview-status warning">
+                ⚠ Revisar fechas
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="vac-preview-grid">
+
+            <div class="vac-preview-box">
+
+                <span>
+                    Fecha inicial
+                </span>
+
+                <strong>
+                    {{ preview.fecha_inicio }}
+                </strong>
+
+            </div>
+
+
+            <div class="vac-preview-box">
+
+                <span>
+                    Fecha final
+                </span>
+
+                <strong>
+                    {{ preview.fecha_final }}
+                </strong>
+
+            </div>
+
+
+            <div class="vac-preview-box">
+
+                <span>
+                    Días naturales
+                </span>
+
+                <strong>
+                    {{ preview.dias_naturales }}
+                </strong>
+
+            </div>
+
+
+            <div class="vac-preview-box featured">
+
+                <span>
+                    Días hábiles
+                </span>
+
+                <strong>
+                    {{ preview.dias_habiles }}
+                </strong>
+
+            </div>
+
+
+            <div class="vac-preview-box">
+
+                <span>
+                    Disponibles actuales
+                </span>
+
+                <strong>
+                    {{ preview.total_disponibles }}
+                </strong>
+
+            </div>
+
+
+            <div class="vac-preview-box featured">
+
+                <span>
+                    Disponibles después
+                </span>
+
+                <strong>
+                    {{ preview.disponibles_despues }}
+                </strong>
+
+            </div>
+
+
+            <div class="vac-preview-box">
+
+                <span>
+                    Cruces encontrados
+                </span>
+
+                <strong>
+                    {{ preview.total_conflictos }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        {% if preview.conflictos %}
+
+        <div class="vac-conflicts">
+
+            <div class="vac-conflicts-title">
+
+                <strong>
+                    Vacaciones existentes dentro del periodo
+                </strong>
+
+                <span>
+                    Pendientes o autorizadas
+                </span>
+
+            </div>
+
+
+            {% for c in preview.conflictos %}
+
+            <div class="vac-conflict-row">
+
+                <div>
+
+                    <strong>
+                        Folio #{{ c.ID_PROCESS }}
+                    </strong>
+
+                    <span>
+                        {{ c.fechaInicio }}
+                        →
+                        {{ c.fechaFinal }}
+                    </span>
+
+                </div>
+
+
+                {% if c.ID_ESTATUS == 21 %}
+
+                <span class="vac-conflict-badge pending">
+                    Pendiente
+                </span>
+
+                {% elif c.ID_ESTATUS == 23 %}
+
+                <span class="vac-conflict-badge approved">
+                    Autorizada
+                </span>
+
+                {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="vac-not-saved">
+
+            🛡️
+
+            <strong>
+                Esta validación NO creó ninguna solicitud
+                en portalWyny.
+            </strong>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const fechaInicio =
+        document.getElementById("fecha_inicio");
+
+    const fechaFinal =
+        document.getElementById("fecha_final");
+
+    const resumen =
+        document.getElementById("vac_live_summary");
+
+    const diasHabilesTexto =
+        document.getElementById("vac_dias_habiles");
+
+    const disponiblesTexto =
+        document.getElementById(
+            "vac_disponibles_despues"
+        );
+
+    const boton =
+        document.getElementById(
+            "btn_validar_vacaciones"
+        );
+
+
+    if (
+        !fechaInicio ||
+        !fechaFinal ||
+        !resumen ||
+        !diasHabilesTexto ||
+        !disponiblesTexto ||
+        !boton
+    ) {
+        return;
+    }
+
+
+    const hoy = "{{ hoy_iso }}";
+
+    const totalDisponibles =
+        Number(
+            resumen.dataset.disponibles || 0
+        );
+
+
+    function fechaUTC(valor) {
+
+        if (!valor) {
+            return null;
+        }
+
+        const partes = valor
+            .split("-")
+            .map(Number);
+
+        return new Date(
+            Date.UTC(
+                partes[0],
+                partes[1] - 1,
+                partes[2]
+            )
+        );
+    }
+
+
+    function calcularDiasHabiles(
+        inicioTexto,
+        finalTexto
+    ) {
+
+        const inicio =
+            fechaUTC(inicioTexto);
+
+        const final =
+            fechaUTC(finalTexto);
+
+        if (!inicio || !final) {
+            return 0;
+        }
+
+        if (final < inicio) {
+            return 0;
+        }
+
+
+        let dias = 0;
+
+        const cursor =
+            new Date(inicio.getTime());
+
+
+        while (cursor <= final) {
+
+            const diaSemana =
+                cursor.getUTCDay();
+
+            /*
+             * JavaScript:
+             * domingo = 0
+             * sábado  = 6
+             *
+             * Portal WYNY:
+             * Días InHábiles [0,6]
+             */
+            if (
+                diaSemana !== 0 &&
+                diaSemana !== 6
+            ) {
+                dias++;
+            }
+
+            cursor.setUTCDate(
+                cursor.getUTCDate() + 1
+            );
+        }
+
+        return dias;
+    }
+
+
+    function actualizarFechaFinal() {
+
+        const inicio =
+            fechaInicio.value;
+
+        if (inicio && inicio > hoy) {
+            fechaFinal.min = inicio;
+        }
+        else {
+            fechaFinal.min = hoy;
+        }
+
+
+        if (
+            fechaFinal.value &&
+            inicio &&
+            fechaFinal.value < inicio
+        ) {
+            fechaFinal.value = "";
+        }
+    }
+
+
+    function actualizarResumen() {
+
+        actualizarFechaFinal();
+
+
+        const inicio =
+            fechaInicio.value;
+
+        const final =
+            fechaFinal.value;
+
+
+        if (!inicio || !final) {
+
+            diasHabilesTexto.textContent =
+                "0";
+
+            disponiblesTexto.textContent =
+                totalDisponibles;
+
+            boton.disabled = true;
+
+            resumen.classList.remove(
+                "valid",
+                "invalid"
+            );
+
+            return;
+        }
+
+
+        const diasHabiles =
+            calcularDiasHabiles(
+                inicio,
+                final
+            );
+
+
+        const disponiblesDespues =
+            totalDisponibles
+            - diasHabiles;
+
+
+        diasHabilesTexto.textContent =
+            diasHabiles;
+
+
+        disponiblesTexto.textContent =
+            disponiblesDespues;
+
+
+        const valido =
+            diasHabiles > 0
+            &&
+            disponiblesDespues >= 0
+            &&
+            inicio >= hoy
+            &&
+            final >= inicio;
+
+
+        boton.disabled =
+            !valido;
+
+
+        resumen.classList.toggle(
+            "valid",
+            valido
+        );
+
+
+        resumen.classList.toggle(
+            "invalid",
+            !valido
+        );
+    }
+
+
+    fechaInicio.addEventListener(
+        "change",
+        function () {
+
+            actualizarFechaFinal();
+
+            /*
+             * Para solicitud de un solo día:
+             * si todavía no hay fecha final,
+             * colocamos la misma fecha.
+             */
+            if (
+                fechaInicio.value &&
+                !fechaFinal.value
+            ) {
+                fechaFinal.value =
+                    fechaInicio.value;
+            }
+
+            actualizarResumen();
+        }
+    );
+
+
+    fechaFinal.addEventListener(
+        "change",
+        actualizarResumen
+    );
+
+
+    actualizarResumen();
+
+});
+</script>
+
+{% endblock %}

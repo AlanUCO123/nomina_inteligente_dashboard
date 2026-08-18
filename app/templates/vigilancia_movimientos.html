@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA - Vigilancia{% endblock %}
+{% block breadcrumb %}Vigilancia / Movimientos{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Control de Entradas y Salidas</h1>
+    <p>Registro digital de movimientos extraordinarios de personal por vigilancia.</p>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <div>
+            <h3>Buscar empleado</h3>
+            <p>Captura número de empleado o nombre. El sistema mostrará horario y permisos autorizados del día.</p>
+        </div>
+    </div>
+
+    <form method="get" action="/vigilancia/movimientos" class="filters-grid">
+        <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" name="fecha" value="{{ fecha }}">
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+            <label>Empleado</label>
+            <input type="text" name="buscar" value="{{ buscar }}" placeholder="Número o nombre">
+        </div>
+
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button class="btn-primary" type="submit">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card mt-18">
+    <div class="section-header">
+        <div>
+            <h3>Resultado de búsqueda</h3>
+            <p>Selecciona el movimiento a registrar para el empleado.</p>
+        </div>
+    </div>
+
+    <div class="vigilancia-grid">
+        {% for e in empleados %}
+        <div class="vigilancia-card">
+            <div class="vig-header">
+                <div>
+                    <strong>{{ e.numero_empleado }} - {{ e.nombre_completo }}</strong>
+                    <p>{{ e.departamento or '-' }}</p>
+                </div>
+
+                {% if e.semaforo == 'ROJO' %}
+                    <span class="badge badge-red">ROJO</span>
+                {% elif e.semaforo == 'AMARILLO' %}
+                    <span class="badge badge-yellow">AMARILLO</span>
+                {% elif e.semaforo == 'VERDE' %}
+                    <span class="badge badge-green">VERDE</span>
+                {% else %}
+                    <span class="badge badge-gray">{{ e.semaforo or '-' }}</span>
+                {% endif %}
+            </div>
+
+            <div class="vig-info">
+                <p><strong>Horario:</strong> {{ e.entrada_esperada or '-' }} → {{ e.salida_esperada or '-' }}</p>
+                <p><strong>Entrada real:</strong> {{ e.checada_entrada_valida or '-' }}</p>
+                <p><strong>Salida real:</strong> {{ e.checada_salida_valida or '-' }}</p>
+                <p><strong>Estatus:</strong> {{ e.estatus_ejecutivo or '-' }}</p>
+
+                {% if e.permiso_nombre %}
+
+                    <div class="permiso-box permiso-autorizado">
+
+                        <div class="permiso-icono permiso-icono-ok">
+                            ✓
+                        </div>
+
+                        <div class="permiso-contenido">
+
+                            <div class="permiso-titulo">
+                                PERMISO AUTORIZADO
+                            </div>
+
+                            <div class="permiso-tipo">
+                                {% if e.tipo_permiso == 'SALIDA_TEMPRANO' %}
+                                    Salida temprana
+                                {% elif e.tipo_permiso == 'LLEGADA_TARDE' %}
+                                    Llegada tarde
+                                {% elif e.tipo_permiso == 'CITA_IMSS' %}
+                                    Cita IMSS
+                                {% elif e.tipo_permiso == 'PERMISO_COMER' %}
+                                    Permiso para comer
+                                {% elif e.tipo_permiso == 'VISITA_CLIENTE' %}
+                                    Visita a cliente
+                                {% elif e.tipo_permiso == 'REGRESO_INTERMEDIO' %}
+                                    Regreso intermedio
+                                {% elif e.tipo_permiso == 'ENTRADA_SIN_CHECADA' %}
+                                    Entrada sin checada
+                                {% elif e.tipo_permiso == 'SALIDA_SIN_CHECADA' %}
+                                    Salida sin checada
+                                {% else %}
+                                    {{ e.tipo_permiso or e.permiso_nombre }}
+                                {% endif %}
+                            </div>
+
+                            <div class="permiso-horario">
+                                <span>🕒</span>
+                                <strong>{{ e.permiso_inicio or '-' }} → {{ e.permiso_fin or '-' }}</strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="permiso-box permiso-sin-autorizacion">
+
+                        <div class="permiso-icono permiso-icono-alerta">
+                            !
+                        </div>
+
+                        <div class="permiso-contenido">
+
+                            <div class="permiso-titulo">
+                                SIN PERMISO AUTORIZADO
+                            </div>
+
+                            <div class="permiso-descripcion">
+                                No se detectó permiso parcial o total para este día.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+            </div>
+
+            <form method="post" action="/vigilancia/movimientos/registrar" class="vig-form">
+                <input type="hidden" name="fecha_operativa" value="{{ fecha }}">
+                <input type="hidden" name="numero_empleado" value="{{ e.numero_empleado }}">
+
+                <label>Tipo de movimiento</label>
+                <select name="tipo_movimiento" required>
+                    <option value="ENTRADA_TARDE"
+                        {% if e.tipo_permiso == 'LLEGADA_TARDE' %}selected{% endif %}>
+                        Entrada tarde
+                    </option>
+
+                    <option value="SALIDA_INTERMEDIA"
+                        {% if e.tipo_permiso in ['CITA_IMSS', 'PERMISO_COMER', 'VISITA_CLIENTE'] %}selected{% endif %}>
+                        Salida intermedia
+                    </option>
+
+                    <option value="REGRESO_INTERMEDIO"
+                        {% if e.tipo_permiso == 'REGRESO_INTERMEDIO' %}selected{% endif %}>
+                        Regreso intermedio
+                    </option>
+
+                    <option value="SALIDA_TEMPRANA"
+                        {% if e.tipo_permiso == 'SALIDA_TEMPRANO' %}selected{% endif %}>
+                        Salida temprana
+                    </option>
+
+                    <option value="ENTRADA_SIN_CHECADA"
+                        {% if e.tipo_permiso == 'ENTRADA_SIN_CHECADA' %}selected{% endif %}>
+                        Entrada sin checada
+                    </option>
+
+                    <option value="SALIDA_SIN_CHECADA"
+                        {% if e.tipo_permiso == 'SALIDA_SIN_CHECADA' %}selected{% endif %}>
+                        Salida sin checada
+                    </option>
+                </select>
+
+                <label>Motivo</label>
+                <select name="motivo">
+                    <option value="PERMISO_AUTORIZADO">Permiso autorizado</option>
+                    <option value="IMSS">IMSS</option>
+                    <option value="COMIDA">Comida</option>
+                    <option value="VISITA_CLIENTE">Visita cliente</option>
+                    <option value="CAMION_TARDE">Camión tarde</option>
+                    <option value="OLVIDO_CHECADA">Olvido de checada</option>
+                    <option value="FALLA_CHECADOR">Falla de checador</option>
+                    <option value="AUTORIZACION_VERBAL">Autorización verbal</option>
+                    <option value="OTRO">Otro</option>
+                </select>
+
+                <label>Observaciones</label>
+                <input type="text" name="observaciones" placeholder="Comentario opcional">
+
+                <button class="btn-primary btn-wide" type="submit">Registrar movimiento</button>
+            </form>
+        </div>
+        {% endfor %}
+
+        {% if empleados|length == 0 %}
+            <p>No se encontraron empleados para la búsqueda.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Movimientos registrados hoy</h3>
+            <p>Bitácora digital capturada por vigilancia.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Hora</th>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Movimiento</th>
+                    <th>Motivo</th>
+                    <th>Ligado</th>
+                    <th>Permiso relacionado</th>
+                    <th>Capturó</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td>{{ m.fecha_hora_evento }}</td>
+                    <td><strong>{{ m.numero_empleado }}</strong></td>
+                    <td>{{ m.nombre_completo }}</td>
+                    <td>{{ m.departamento }}</td>
+                    <td><span class="badge badge-blue">{{ m.tipo_movimiento }}</span></td>
+                    <td>{{ m.motivo or '-' }}</td>
+                    <td>
+                        {% if m.permiso_nombre %}
+                            <span class="badge badge-green">Sí</span>
+                        {% else %}
+                            <span class="badge badge-yellow">No</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ m.permiso_nombre or '-' }}</td>
+                    <td>{{ m.capturado_por or '-' }}</td>
+                    <td>{{ m.observaciones or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

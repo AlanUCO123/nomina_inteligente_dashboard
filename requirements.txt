@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+jinja2
+python-dotenv
+sqlalchemy
+pyodbc
+pandas
+requests
+python-multipart
+itsdangerous
+pywebpush
+cryptography

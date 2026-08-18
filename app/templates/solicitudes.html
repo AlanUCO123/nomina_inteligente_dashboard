@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Mis Vacaciones y Permisos
+{% endblock %}
+
+{% block breadcrumb %}
+Mis Vacaciones y Permisos
+{% endblock %}
+
+
+{% block content %}
+
+<div class="sol-page">
+
+    <!-- =====================================================
+         ENCABEZADO
+         ===================================================== -->
+
+    <div class="sol-header">
+
+        <div>
+
+            <span class="sol-eyebrow">
+                PORTAL DEL EMPLEADO
+            </span>
+
+            <h1>
+                Mis Vacaciones y Permisos
+            </h1>
+
+            <p>
+                Consulta tus solicitudes y realiza nuevos trámites
+                desde NOVA.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% if error %}
+
+        <div class="sol-alert sol-alert-error">
+            {{ error }}
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         EMPLEADO
+         ===================================================== -->
+
+    {% if usuario_portal %}
+
+    <section class="sol-employee-card">
+
+        <div class="sol-avatar">
+
+            {{ usuario_portal.nombreCompleto[:1] }}
+
+        </div>
+
+
+        <div class="sol-employee-info">
+
+            <span>
+                Empleado
+            </span>
+
+            <strong>
+                {{ usuario_portal.nombreCompleto }}
+            </strong>
+
+            <small>
+                No. {{ usuario_portal.numeroEmpleado }}
+            </small>
+
+        </div>
+
+
+        {% if saldo_vacaciones %}
+
+        <div class="sol-vacation-balance">
+
+            <span>
+                Saldo registrado
+            </span>
+
+            <strong>
+                {{ saldo_vacaciones.dias_vac or 0 }}
+            </strong>
+
+            <small>
+                días
+            </small>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         ACCIONES
+         ===================================================== -->
+
+    <div class="sol-actions">
+
+        <a
+            href="/solicitudes/vacaciones/nueva"
+            class="sol-action-card sol-action-link"
+        >
+
+            <span class="sol-action-icon">
+                🏖️
+            </span>
+
+
+            <span>
+
+                <strong>
+                    Solicitar Vacaciones
+                </strong>
+
+                <small>
+                    Selecciona las fechas de tu periodo vacacional.
+                </small>
+
+            </span>
+
+
+            <em>
+                Iniciar →
+            </em>
+
+        </a>
+
+
+        <a
+            href="/solicitudes/permiso/nuevo"
+            class="sol-action-card sol-action-link"
+        >
+
+            <span class="sol-action-icon">
+                📅
+            </span>
+
+            <span>
+
+                <strong>
+                    Solicitar Permiso
+                </strong>
+
+                <small>
+                    Permiso por uno o varios días.
+                </small>
+
+            </span>
+
+            <em>
+                Iniciar →
+            </em>
+
+        </a>
+
+
+        <a
+            href="/solicitudes/permiso-parcial/nuevo"
+            class="sol-action-card sol-action-link"
+        >
+
+            <span class="sol-action-icon">
+                🕒
+            </span>
+
+            <span>
+
+                <strong>
+                    Solicitar Permiso Parcial
+                </strong>
+
+                <small>
+                    Llegada, salida o ausencia por horario.
+                </small>
+
+            </span>
+
+            <em>
+                Iniciar →
+            </em>
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         ESTADOS
+         ===================================================== -->
+
+    <div class="sol-status-tabs">
+
+        <a
+            href="/solicitudes?estado=PENDIENTES"
+            class="
+                sol-tab
+                {% if estado == 'PENDIENTES' %}
+                    active pending
+                {% endif %}
+            "
+        >
+
+            <span>⌛</span>
+
+            Pendientes
+
+            <strong>
+                {{ resumen.pendientes }}
+            </strong>
+
+        </a>
+
+
+        <a
+            href="/solicitudes?estado=AUTORIZADOS"
+            class="
+                sol-tab
+                {% if estado == 'AUTORIZADOS' %}
+                    active approved
+                {% endif %}
+            "
+        >
+
+            <span>✓</span>
+
+            Autorizados
+
+            <strong>
+                {{ resumen.autorizados }}
+            </strong>
+
+        </a>
+
+
+        <a
+            href="/solicitudes?estado=RECHAZADOS"
+            class="
+                sol-tab
+                {% if estado == 'RECHAZADOS' %}
+                    active rejected
+                {% endif %}
+            "
+        >
+
+            <span>✕</span>
+
+            Rechazados
+
+            <strong>
+                {{ resumen.rechazados }}
+            </strong>
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         HISTORIAL
+         ===================================================== -->
+
+    <section class="sol-history-card">
+
+        <div class="sol-section-header">
+
+            <div>
+
+                <h2>
+                    Solicitudes
+                </h2>
+
+                <p>
+                    Se muestran tus solicitudes
+                    {{ estado|lower }}.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if solicitudes %}
+
+        <div class="sol-request-list">
+
+            {% for s in solicitudes %}
+
+            <article class="sol-request">
+
+                <div class="sol-request-icon">
+
+                    {% if s.grupo_solicitud == 'VACACIONES' %}
+                        🏖️
+
+                    {% elif s.grupo_solicitud == 'PERMISO_COMPLETO' %}
+                        📅
+
+                    {% elif s.grupo_solicitud == 'PERMISO_PARCIAL' %}
+                        🕒
+
+                    {% else %}
+                        📄
+                    {% endif %}
+
+                </div>
+
+
+                <div class="sol-request-main">
+
+                    <div class="sol-request-title">
+
+                        <strong>
+                            {{ s.permiso_nombre }}
+                        </strong>
+
+                        <span>
+                            #{{ s.ID_PROCESS }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="sol-request-meta">
+
+                        <span>
+                            {{ s.fechaInicio }}
+                            →
+                            {{ s.fechaFinal }}
+                        </span>
+
+
+                        {% if s.horaInicio or s.horaFinal %}
+
+                            <span>
+                                🕒
+                                {{ s.horaInicio or '-' }}
+                                →
+                                {{ s.horaFinal or '-' }}
+                            </span>
+
+                        {% endif %}
+
+
+                        {% if s.diasHabiles %}
+
+                            <span>
+                                {{ s.diasHabiles }}
+                                día{% if s.diasHabiles != 1 %}s{% endif %}
+                                hábil{% if s.diasHabiles != 1 %}es{% endif %}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if s.motivoPermiso %}
+
+                    <p class="sol-request-reason">
+
+                        {{ s.motivoPermiso }}
+
+                    </p>
+
+                    {% endif %}
+
+
+                    {% if s.motivoRechazo %}
+
+                    <p class="sol-request-rejection">
+
+                        <strong>
+                            Motivo de rechazo:
+                        </strong>
+
+                        {{ s.motivoRechazo }}
+
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="sol-request-status">
+
+                    {% if s.ID_ESTATUS == 21 %}
+
+                        <span class="sol-badge pending">
+                            En espera
+                        </span>
+
+                    {% elif s.ID_ESTATUS == 23 %}
+
+                        <span class="sol-badge approved">
+                            ✓ Autorizada
+                        </span>
+
+                    {% elif s.ID_ESTATUS == 24 %}
+
+                        <span class="sol-badge rejected">
+                            ✕ Rechazada
+                        </span>
+
+                    {% endif %}
+
+
+                    <small class="sol-request-date">
+                        Solicitada
+                        {{ s.fechaSolicitud_formateada }}
+                    </small>
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="sol-empty">
+
+            <div>
+                📭
+            </div>
+
+            <strong>
+                No hay solicitudes
+            </strong>
+
+            <p>
+                No tienes solicitudes en este estado.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-section">
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1>Detalle de Jornada HE</h1>
+            <p>Empleado {{ numero_empleado }} | Fecha {{ fecha }}</p>
+        </div>
+    </div>
+
+    <a href="javascript:history.back()" class="btn-secondary">← Regresar</a>
+
+    {% if jornada %}
+
+    <!-- Información del empleado -->
+    <div class="section-card">
+        <div class="section-title">
+            <h2>👤 {{ jornada.nombre_completo }}</h2>
+            <p>{{ jornada.departamento }} | Estatus día: <strong>{{ jornada.estatus_dia }}</strong></p>
+        </div>
+
+        <div class="detail-grid">
+            <div>
+                <span>Entrada esperada</span>
+                <strong>{{ jornada.entrada_esperada or '-' }}</strong>
+            </div>
+            <div>
+                <span>Entrada válida</span>
+                <strong>{{ jornada.checada_entrada_valida or '-' }}</strong>
+            </div>
+            <div>
+                <span>Salida esperada</span>
+                <strong>{{ jornada.salida_esperada or '-' }}</strong>
+            </div>
+            <div>
+                <span>Salida válida</span>
+                <strong>{{ jornada.checada_salida_valida or '-' }}</strong>
+            </div>
+            <div>
+                <span>Retardo</span>
+                <strong>{{ jornada.minutos_retardo or 0 }} min</strong>
+            </div>
+            <div>
+                <span>HE detectada</span>
+                <strong>{{ ((jornada.minutos_extra_detectados or 0) / 60) | round(2) }} h</strong>
+            </div>
+        </div>
+
+        {% if jornada.observaciones %}
+        <div class="note-box">
+            <strong>Observaciones:</strong> {{ jornada.observaciones }}
+        </div>
+        {% endif %}
+    </div>
+
+    {% endif %}
+
+    <!-- Horas extra del día -->
+    <div class="section-card">
+        <div class="section-title">
+            <h2>⏱️ Horas extra del día</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo HE</th>
+                        <th>Detectadas</th>
+                        <th>Autorizadas</th>
+                        <th>Estatus</th>
+                        <th>Autorización</th>
+                        <th>Motivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in he %}
+                    <tr>
+                        <td><strong>{{ r.tipo_tiempo_extra_final }}</strong></td>
+                        <td>{{ r.horas_detectadas }} h</td>
+                        <td><strong>{{ r.horas_autorizadas }} h</strong></td>
+                        <td>
+                            <span class="badge {% if r.estatus == 'CONFIRMADA' %}success{% elif r.estatus == 'NO_CONSIDERAR' %}danger{% else %}warning{% endif %}">
+                                {{ r.estatus }}
+                            </span>
+                        </td>
+                        <td>{{ r.estatus_autorizacion }}</td>
+                        <td>{{ r.motivo or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr class="empty-row">
+                        <td colspan="6">No hay HE registrada para este día.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Checadas reales -->
+    <div class="section-card">
+        <div class="section-title">
+            <h2>🔔 Checadas reales</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Estado</th>
+                        <th>Terminal</th>
+                        <th>Área</th>
+                        <th>Fuente</th>
+                        <th>Verificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in checadas %}
+                    <tr>
+                        <td><strong>{{ c.punch_time }}</strong></td>
+                        <td>{{ c.punch_state }}</td>
+                        <td>{{ c.terminal_alias or '-' }}</td>
+                        <td>{{ c.area_alias or '-' }}</td>
+                        <td><span class="muted">{{ c.source or '-' }}</span></td>
+                        <td><span class="muted">{{ c.verify_type or '-' }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr class="empty-row">
+                        <td colspan="6">No hay checadas registradas para este día.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

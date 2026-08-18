@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Solicitar Permiso Parcial
+{% endblock %}
+
+{% block breadcrumb %}
+Solicitudes / Solicitar Permiso Parcial
+{% endblock %}
+
+
+{% block content %}
+
+<div class="vac-page">
+
+    <div class="vac-header">
+
+        <div>
+
+            <span class="vac-eyebrow">
+                NUEVA SOLICITUD
+            </span>
+
+            <h1>
+                Solicitar Permiso Parcial
+            </h1>
+
+            <p>
+                Registra una llegada, salida o ausencia por horario.
+            </p>
+
+        </div>
+
+
+        <div class="vac-safe-badge">
+
+            <span>🛡️</span>
+
+            <div>
+
+                <strong>
+                    Modo validación
+                </strong>
+
+                <small>
+                    Todavía no se guarda la solicitud
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% if error %}
+
+    <div class="sol-alert sol-alert-error">
+        {{ error }}
+    </div>
+
+    {% endif %}
+
+
+    {% if empleado_portal %}
+
+    <section class="vac-employee-card">
+
+        <div class="vac-avatar">
+            {{ empleado_portal.nombreCompleto[:1] }}
+        </div>
+
+
+        <div class="vac-employee-main">
+
+            <span>
+                Empleado
+            </span>
+
+            <strong>
+                {{ empleado_portal.nombreCompleto }}
+            </strong>
+
+            <small>
+                No. {{ empleado_portal.numeroEmpleado }}
+            </small>
+
+        </div>
+
+
+        {% if vacaciones_resumen %}
+
+        <div class="vac-employee-department">
+
+            <span>
+                Departamento
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.departamento }}
+            </strong>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+
+    {% if vacaciones_resumen %}
+
+    <section class="perm-employee-summary">
+
+        <div>
+
+            <span>
+                👥 Supervisor
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.supervisor }}
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                📅 Fecha
+            </span>
+
+            <strong>
+                Selecciona el día del permiso
+            </strong>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <section class="perm-card">
+
+        <div class="perm-card-header">
+
+            <span>
+                PERMISO PARCIAL
+            </span>
+
+            <h2>
+                Datos del horario
+            </h2>
+
+            <p>
+                Revisa cuidadosamente la fecha y las horas.
+            </p>
+
+        </div>
+
+
+        <form
+            method="post"
+            action="/solicitudes/permiso-parcial/validar"
+            id="permiso_parcial_form"
+        >
+
+            <div class="perm-grid">
+
+                <div class="perm-field perm-span-2">
+
+                    <label>
+                        Tipo de permiso
+                    </label>
+
+                    <select
+                        name="tipo_permiso"
+                        id="tipo_permiso"
+                        required
+                    >
+
+                        <option value="">
+                            Selecciona una opción
+                        </option>
+
+
+                        {% for tipo in tipos_permiso_parcial %}
+
+                        <option
+                            value="{{ tipo.ID_PROCESS }}"
+                            {% if form_data.tipo_permiso|string == tipo.ID_PROCESS|string %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ tipo.permisoNombre }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div
+                    class="perm-field perm-span-2"
+                    id="otros_box"
+                    style="display:none;"
+                >
+
+                    <label>
+                        Tipo de permiso / descripción
+                    </label>
+
+                    <input
+                        type="text"
+                        name="descripcion_otros"
+                        id="descripcion_otros"
+                        maxlength="64"
+                        value="{{ form_data.descripcion_otros or '' }}"
+                        placeholder="Ej. Tienda, trámite personal..."
+                    >
+
+                </div>
+
+
+                <div class="perm-field perm-span-2">
+
+                    <label>
+                        Fecha
+                    </label>
+
+                    <input
+                        type="date"
+                        name="fecha"
+                        id="fecha"
+                        min="{{ hoy_iso }}"
+                        value="{{ form_data.fecha or '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="perm-field">
+
+                    <label>
+                        Hora Inicio
+                    </label>
+
+                    <input
+                        type="time"
+                        name="hora_inicio"
+                        id="hora_inicio"
+                        value="{{ form_data.hora_inicio or '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="perm-field">
+
+                    <label>
+                        Hora Final
+                    </label>
+
+                    <input
+                        type="time"
+                        name="hora_final"
+                        id="hora_final"
+                        value="{{ form_data.hora_final or '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="perm-duration">
+
+                    <span>
+                        Duración de ausencia
+                    </span>
+
+                    <strong id="duracion_texto">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="perm-field perm-span-2">
+
+                    <label>
+                        Motivo
+                    </label>
+
+                    <textarea
+                        name="motivo"
+                        id="motivo"
+                        maxlength="1000"
+                        required
+                        placeholder="Escribe el motivo del permiso..."
+                    >{{ form_data.motivo or '' }}</textarea>
+
+                </div>
+
+
+                <label class="perm-confirm perm-span-2">
+
+                    <input
+                        type="checkbox"
+                        name="confirmar_horario"
+                        value="1"
+                        {% if form_data.confirmar_horario %}
+                            checked
+                        {% endif %}
+                        required
+                    >
+
+                    <span>
+                        He revisado y confirmo que el horario
+                        de ausencia es correcto.
+                    </span>
+
+                </label>
+
+            </div>
+
+
+            <div class="perm-form-footer">
+
+                <a
+                    href="/solicitudes"
+                    class="vac-btn vac-btn-secondary"
+                >
+                    Cancelar
+                </a>
+
+                <button
+                    type="submit"
+                    class="vac-btn vac-btn-primary"
+                >
+                    Validar solicitud
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    {% if preview %}
+
+    <section class="perm-preview">
+
+        <div class="perm-card-header">
+
+            <span>
+                RESULTADO
+            </span>
+
+            <h2>
+                Validación del permiso parcial
+            </h2>
+
+        </div>
+
+
+        <div class="perm-preview-grid">
+
+            <div>
+
+                <span>
+                    Tipo
+                </span>
+
+                <strong>
+                    {{ preview.tipo_nombre }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Fecha
+                </span>
+
+                <strong>
+                    {{ preview.fecha }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Horario
+                </span>
+
+                <strong>
+                    {{ preview.hora_inicio }}
+                    →
+                    {{ preview.hora_final }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Duración
+                </span>
+
+                <strong>
+                    {{ preview.duracion_texto }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Cruces
+                </span>
+
+                <strong>
+                    {{ preview.total_conflictos }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        {% if preview.periodo_valido %}
+
+        <div class="perm-validation-ok">
+            ✓ El horario pasó las validaciones.
+        </div>
+
+        {% else %}
+
+        <div class="perm-validation-error">
+            ⚠ Ya existe una solicitud pendiente o autorizada
+            que coincide con este horario.
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const tipo =
+            document.getElementById("tipo_permiso");
+
+        const otrosBox =
+            document.getElementById("otros_box");
+
+        const descripcion =
+            document.getElementById(
+                "descripcion_otros"
+            );
+
+        const inicio =
+            document.getElementById("hora_inicio");
+
+        const final =
+            document.getElementById("hora_final");
+
+        const duracion =
+            document.getElementById(
+                "duracion_texto"
+            );
+
+
+        function actualizarOtros() {
+
+            if (!tipo) {
+                return;
+            }
+
+            const esOtros =
+                tipo.value === "7";
+
+
+            otrosBox.style.display =
+                esOtros
+                    ? "flex"
+                    : "none";
+
+
+            descripcion.required =
+                esOtros;
+
+
+            if (!esOtros) {
+                descripcion.value = "";
+            }
+        }
+
+
+        function calcularDuracion() {
+
+            if (
+                !inicio.value ||
+                !final.value
+            ) {
+
+                duracion.textContent = "—";
+                return;
+            }
+
+
+            const i =
+                inicio.value.split(":");
+
+            const f =
+                final.value.split(":");
+
+
+            const ini =
+                Number(i[0]) * 60
+                + Number(i[1]);
+
+            const fin =
+                Number(f[0]) * 60
+                + Number(f[1]);
+
+
+            const minutos =
+                fin - ini;
+
+
+            if (minutos <= 0) {
+
+                duracion.textContent =
+                    "Horario inválido";
+
+                return;
+            }
+
+
+            const horas =
+                Math.floor(
+                    minutos / 60
+                );
+
+            const resto =
+                minutos % 60;
+
+
+            if (horas && resto) {
+
+                duracion.textContent =
+                    horas
+                    + " h "
+                    + resto
+                    + " min";
+
+            }
+            else if (horas) {
+
+                duracion.textContent =
+                    horas + " h";
+
+            }
+            else {
+
+                duracion.textContent =
+                    resto + " min";
+            }
+        }
+
+
+        tipo.addEventListener(
+            "change",
+            actualizarOtros
+        );
+
+
+        inicio.addEventListener(
+            "change",
+            calcularDuracion
+        );
+
+
+        final.addEventListener(
+            "change",
+            calcularDuracion
+        );
+
+
+        actualizarOtros();
+        calcularDuracion();
+
+    }
+);
+
+</script>
+
+{% endblock %}

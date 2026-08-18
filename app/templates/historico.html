@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="panel">
+    <form method="get" class="filters">
+        <div>
+            <label for="fecha_inicio">Fecha inicio</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}" required>
+        </div>
+
+        <div>
+            <label for="fecha_fin">Fecha fin</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}" required>
+        </div>
+
+        <div>
+            <label for="empresa">Empresa</label>
+            <select id="empresa" name="empresa">
+                <option value="TODOS" {% if empresa == "TODOS" %}selected{% endif %}>Todos</option>
+                <option value="WYNY" {% if empresa == "WYNY" %}selected{% endif %}>WYNY</option>
+                <option value="LUXMA" {% if empresa == "LUXMA" %}selected{% endif %}>LUXMA</option>
+                <option value="EXTERNO" {% if empresa == "EXTERNO" %}selected{% endif %}>EXTERNO</option>
+            </select>
+        </div>
+
+        <button type="submit">Consultar histórico</button>
+        <a href="/" class="link-button">Volver al monitor diario</a>
+    </form>
+</div>
+
+<div class="panel">
+    <h2>Totales del periodo</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>En tiempo</th>
+                <th>Retardos</th>
+                <th>Falta entrada</th>
+                <th>Descansos</th>
+                <th>Permisos</th>
+                <th>Vacaciones</th>
+                <th>Sin horario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in totales %}
+            <tr>
+                <td><strong>{{ row.empresa_origen }}</strong></td>
+                <td>{{ row.en_tiempo }}</td>
+                <td>{{ row.retardos }}</td>
+                <td>{{ row.falta_entrada }}</td>
+                <td>{{ row.descansos }}</td>
+                <td>{{ row.permisos }}</td>
+                <td>{{ row.vacaciones }}</td>
+                <td>{{ row.sin_horario }}</td>
+                <td><strong>{{ row.total }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel">
+    <h2>Resumen diario</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Empresa</th>
+                <th>En tiempo</th>
+                <th>Retardos</th>
+                <th>Falta entrada</th>
+                <th>Faltas probables</th>
+                <th>Descansos</th>
+                <th>Permisos</th>
+                <th>Vacaciones</th>
+                <th>Sin horario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in resumen %}
+            <tr>
+                <td>{{ row.fecha_operativa }}</td>
+                <td>{{ row.empresa_origen }}</td>
+                <td>
+                    {% if row.en_tiempo > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=EN_TIEMPO">{{ row.en_tiempo }}</a>
+                    {% else %}
+                        {{ row.en_tiempo }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.retardos > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=RETARDO">{{ row.retardos }}</a>
+                    {% else %}
+                        {{ row.retardos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.falta_entrada > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=FALTA_ENTRADA">{{ row.falta_entrada }}</a>
+                    {% else %}
+                        {{ row.falta_entrada }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.faltas_probables > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=FALTA_PROBABLE">{{ row.faltas_probables }}</a>
+                    {% else %}
+                        {{ row.faltas_probables }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.descansos > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=DESCANSO">{{ row.descansos }}</a>
+                    {% else %}
+                        {{ row.descansos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.permisos > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=PERMISO">{{ row.permisos }}</a>
+                    {% else %}
+                        {{ row.permisos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.vacaciones > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=VACACIONES">{{ row.vacaciones }}</a>
+                    {% else %}
+                        {{ row.vacaciones }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if row.sin_horario > 0 %}
+                        <a href="/?fecha={{ row.fecha_operativa }}&empresa={{ row.empresa_origen }}&estatus=SIN_HORARIO">{{ row.sin_horario }}</a>
+                    {% else %}
+                        {{ row.sin_horario }}
+                    {% endif %}
+                </td>
+                <td>{{ row.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="grid-2">
+    <div class="panel">
+        <h3>Top retardos</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Días</th>
+                    <th>Minutos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in top_retardos %}
+                <tr>
+                    <td>{{ row.numero_empleado }}</td>
+                    <td>{{ row.nombre_completo }}</td>
+                    <td>{{ row.departamento }}</td>
+                    <td>{{ row.dias_con_retardo }}</td>
+                    <td>{{ row.minutos_retardo_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel">
+        <h3>Top falta de entrada</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Días</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in top_falta_entrada %}
+                <tr>
+                    <td>{{ row.numero_empleado }}</td>
+                    <td>{{ row.nombre_completo }}</td>
+                    <td>{{ row.departamento }}</td>
+                    <td>{{ row.dias_sin_entrada }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

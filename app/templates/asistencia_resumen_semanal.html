@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA Personal - Resumen semanal{% endblock %}
+{% block breadcrumb %}Asistencia / Resumen semanal{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Resumen Semanal de Asistencia</h1>
+    <p>
+        Panorama ejecutivo del periodo miércoles a martes,
+        con asistencia, incidencias y tiempo extra.
+    </p>
+</div>
+
+<!-- FILTROS -->
+<div class="card">
+    <div class="section-header">
+        <div>
+            <h3>Periodo semanal</h3>
+            <p>
+                Selecciona una fecha perteneciente a la semana
+                que deseas consultar.
+            </p>
+        </div>
+    </div>
+
+    <form method="get"
+          action="/asistencia/resumen-semanal"
+          class="filters-grid resumen-semanal-filters">
+
+        <div class="form-group">
+            <label>Semana</label>
+            <input
+                type="date"
+                name="fecha_inicio"
+                value="{{ fecha_inicio }}"
+            >
+        </div>
+
+        <div class="form-group">
+            <label>Departamento</label>
+            <select name="departamento">
+                <option value="TODOS"
+                    {% if departamento == 'TODOS' %}selected{% endif %}>
+                    TODOS
+                </option>
+
+                {% for d in departamentos %}
+                    <option value="{{ d }}"
+                        {% if departamento == d %}selected{% endif %}>
+                        {{ d }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button class="btn-primary" type="submit">
+                Buscar
+            </button>
+        </div>
+    </form>
+
+    <div class="weekly-period-info">
+        <strong>Periodo:</strong>
+        {{ fecha_inicio }} → {{ fecha_fin }}
+
+        {% if fecha_corte != fecha_fin %}
+            <span>
+                · Avance calculado hasta {{ fecha_corte }}
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div>
+            <span>Plantilla</span>
+            <strong>{{ kpis.plantilla or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>Jornadas presentes</span>
+            <strong>{{ kpis.asistencias or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div>
+            <span>Retardos</span>
+            <strong class="text-danger-bold">
+                {{ kpis.retardos or 0 }}
+            </strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">❌</div>
+        <div>
+            <span>Sin entrada</span>
+            <strong class="text-danger-bold">
+                {{ kpis.sin_entrada or 0 }}
+            </strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🚪</div>
+        <div>
+            <span>Sin salida</span>
+            <strong class="text-danger-bold">
+                {{ kpis.sin_salida or 0 }}
+            </strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⏱</div>
+        <div>
+            <span>HE detectada</span>
+            <strong class="text-success-bold">
+                {{ "%.2f"|format(kpis.he_detectada or 0) }}
+            </strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>HE autorizada</span>
+            <strong class="text-success-bold">
+                {{ "%.2f"|format(kpis.he_autorizada or 0) }}
+            </strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🕒</div>
+        <div>
+            <span>HE pendiente</span>
+            <strong>
+                {{ kpis.he_pendiente or 0 }}
+            </strong>
+        </div>
+    </div>
+
+</div>
+
+<!-- SEMÁFORO -->
+<div class="grid-3 mt-18">
+
+    <div class="card weekly-alert-card">
+        <div>
+            <span class="weekly-alert-dot red"></span>
+            <strong>Incidencias críticas</strong>
+        </div>
+
+        <span class="weekly-alert-number text-danger-bold">
+            {{ kpis.criticos or 0 }}
+        </span>
+    </div>
+
+    <div class="card weekly-alert-card">
+        <div>
+            <span class="weekly-alert-dot yellow"></span>
+            <strong>Pendientes de revisión</strong>
+        </div>
+        
+
+        <span class="weekly-alert-number">
+            {{ kpis.pendientes_revision or 0 }}
+        </span>
+    </div>
+
+    <div class="card weekly-alert-card">
+        <div>
+            <span class="weekly-alert-dot"></span>
+            <strong>Pendientes de entrada</strong>
+        </div>
+
+        <span class="weekly-alert-number">
+            {{ kpis.pendientes_entrada or 0 }}
+        </span>
+    </div>
+
+</div>
+
+<!-- DÍA POR DÍA -->
+<div class="card mt-24">
+
+    <div class="section-header">
+        <div>
+            <h3>Comportamiento diario</h3>
+            <p>
+                Evolución de asistencia e incidencias durante la semana.
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table weekly-table">
+
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Plantilla</th>
+                    <th>Presentes</th>
+                    <th>En tiempo</th>
+                    <th>Retardos</th>
+                    <th>Sin entrada</th>
+                    <th>Pend. entrada</th>
+                    <th>Sin salida</th>
+                    <th>Descansos</th>
+                    <th>Vacaciones</th>
+                    <th>Permisos</th>
+                    <th>HE detectada</th>
+                    <th>Críticos</th>
+                    <th>Pendientes</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for d in por_dia %}
+                <tr>
+                    <td>
+                        <strong>{{ d.fecha_operativa }}</strong>
+                    </td>
+
+                    <td>{{ d.plantilla or 0 }}</td>
+                    <td>{{ d.presentes or 0 }}</td>
+                    <td>{{ d.en_tiempo or 0 }}</td>
+
+                    <td class="text-danger-bold">
+                        {{ d.retardos or 0 }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ d.sin_entrada or 0 }}
+                    </td>
+
+                    <td>
+                        {{ d.pendientes_entrada or 0 }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ d.sin_salida or 0 }}
+                    </td>
+
+                    <td>{{ d.descansos or 0 }}</td>
+                    <td>{{ d.vacaciones or 0 }}</td>
+                    <td>{{ d.permisos or 0 }}</td>
+
+                    <td class="text-success-bold">
+                        {{ "%.2f"|format(d.he_detectada or 0) }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ d.criticos or 0 }}
+                    </td>
+
+                    <td>
+                        {{ d.pendientes_revision or 0 }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+
+<!-- POR DEPARTAMENTO -->
+<div class="card mt-24">
+
+    <div class="section-header">
+        <div>
+            <h3>Resumen por departamento</h3>
+            <p>
+                Comparativo semanal de las áreas dentro de tu alcance.
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table weekly-table">
+
+            <thead>
+                <tr>
+                    <th>Departamento</th>
+                    <th>Empleados</th>
+                    <th>Asistencias</th>
+                    <th>Retardos</th>
+                    <th>Sin entrada</th>
+                    <th>Pend. entrada</th>
+                    <th>Sin salida</th>
+                    <th>HE detectada</th>
+                    <th>Críticos</th>
+                    <th>Pendientes</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for d in por_departamento %}
+                <tr>
+
+                    <td>
+                        <strong>
+                            {{ d.departamento or 'SIN DEPARTAMENTO' }}
+                        </strong>
+                    </td>
+
+                    <td>{{ d.empleados or 0 }}</td>
+                    <td>{{ d.asistencias or 0 }}</td>
+
+                    <td class="text-danger-bold">
+                        {{ d.retardos or 0 }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ d.sin_entrada or 0 }}
+                    </td>
+
+                    <td>
+                        {{ d.pendientes_entrada or 0 }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ d.sin_salida or 0 }}
+                    </td>
+
+                    <td class="text-success-bold">
+                        {{ "%.2f"|format(d.he_detectada or 0) }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ d.criticos or 0 }}
+                    </td>
+
+                    <td>
+                        {{ d.pendientes_revision or 0 }}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+
+<!-- INCIDENCIAS -->
+<div class="card mt-24">
+
+    <div class="section-header">
+        <div>
+            <h3>Personal con incidencias</h3>
+            <p>
+                Empleados con retardos, falta de entrada,
+                falta de salida o tiempo extra detectado.
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="nova-table weekly-table">
+
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Retardos</th>
+                    <th>Sin entrada</th>
+                    <th>Sin salida</th>
+                    <th>HE detectada</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for x in incidencias %}
+                <tr>
+
+                    <td>
+                        <strong>{{ x.numero_empleado }}</strong>
+                    </td>
+
+                    <td>{{ x.nombre_completo }}</td>
+
+                    <td>{{ x.departamento }}</td>
+
+                    <td class="text-danger-bold">
+                        {{ x.retardos or 0 }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ x.sin_entrada or 0 }}
+                    </td>
+
+                    <td class="text-danger-bold">
+                        {{ x.sin_salida or 0 }}
+                    </td>
+
+                    <td class="text-success-bold">
+                        {{ "%.2f"|format(x.he_detectada or 0) }}
+                    </td>
+
+                    <td>
+                        <a
+                            class="btn-mini btn-confirm"
+                            href="/asistencia/mis-checadas?numero_empleado={{ x.numero_empleado }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}"
+                        >
+                            Ver checadas
+                        </a>
+                    </td>
+
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

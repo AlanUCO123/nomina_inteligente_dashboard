@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block breadcrumb %}Control de Tiempo Extra{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Control HE en línea</h1>
+    <p>Panel de revisión, autorización y ajuste de tiempo extra detectado por jornada.</p>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <div>
+            <h3>Filtros de búsqueda</h3>
+            <p>Consulta eventos de tiempo extra por fecha, departamento y estatus.</p>
+        </div>
+    </div>
+    <form method="get" action="/he-control" class="filters-grid">
+        {% if token %}<input type="hidden" name="token" value="{{ token }}">{% endif %}
+        <div class="form-group">
+            <label>Fecha inicio</label>
+            <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
+        </div>
+        <div class="form-group">
+            <label>Fecha fin</label>
+            <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+        </div>
+        <div class="form-group">
+            <label>Departamento</label>
+            <select name="departamento">
+                <option value="TODOS" {% if departamento == "TODOS" %}selected{% endif %}>TODOS</option>
+                {% for d in departamentos %}
+                    <option value="{{ d }}" {% if departamento == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Estatus</label>
+            <select name="estatus">
+                <option value="TODOS" {% if estatus == "TODOS" %}selected{% endif %}>TODOS</option>
+                <option value="PENDIENTE" {% if estatus == "PENDIENTE" %}selected{% endif %}>PENDIENTE</option>
+                <option value="CONFIRMADA" {% if estatus == "CONFIRMADA" %}selected{% endif %}>CONFIRMADA</option>
+                <option value="RECHAZADA" {% if estatus == "RECHAZADA" %}selected{% endif %}>RECHAZADA</option>
+                <option value="AJUSTADA" {% if estatus == "AJUSTADA" %}selected{% endif %}>AJUSTADA</option>
+            </select>
+        </div>
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button class="btn-primary" type="submit">🔍 Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="grid-4 mt-24">
+    <div class="kpi-card">
+        <div class="kpi-icon">📅</div>
+        <div>
+            <span>Total Eventos</span>
+            <strong>{{ kpis.total_eventos or 0 }}</strong>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div>
+            <span>Pendientes</span>
+            <strong>{{ kpis.pendientes or 0 }}</strong>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>Confirmadas</span>
+            <strong>{{ kpis.confirmadas or 0 }}</strong>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon">⏱</div>
+        <div>
+            <span>Horas autorizadas</span>
+            <strong>{{ kpis.horas_autorizadas or 0 }}</strong>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 24px; margin-bottom: 24px;">
+    <button type="button" class="btn-primary" onclick="document.getElementById('forma-manual').style.display = document.getElementById('forma-manual').style.display === 'none' ? 'block' : 'none'; this.textContent = this.textContent === '➕ Agregar HE manual' ? '✕ Cerrar' : '➕ Agregar HE manual'">➕ Agregar HE manual</button>
+</div>
+
+<section id="forma-manual" class="card mt-24" style="display: none;">
+    <div class="section-header">
+        <div>
+            <h3>Agregar HE manual</h3>
+            <p>Registro manual de tiempo extra con evidencia y justificación.</p>
+        </div>
+    </div>
+    <form method="post" action="/he-control/agregar-manual" class="form-grid">
+        {% if token %}<input type="hidden" name="token" value="{{ token }}">{% endif %}
+        <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
+        <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
+        <input type="hidden" name="departamento_filtro" value="{{ departamento }}">
+        <input type="hidden" name="estatus_filtro" value="{{ estatus }}">
+        
+        <div class="form-group">
+            <label>Fecha operativa *</label>
+            <input type="date" name="fecha_operativa" required>
+        </div>
+        <div class="form-group">
+            <label>No. empleado *</label>
+            <input type="text" name="numero_empleado" placeholder="Ej: 10176" required>
+        </div>
+        <div class="form-group">
+            <label>Tipo HE *</label>
+            <select name="tipo_he" required>
+                <option value="">Seleccionar</option>
+                <option value="HE_NORMAL">HE normal</option>
+                <option value="HE_DESCANSO">HE descanso</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Horas autorizadas *</label>
+            <input type="number" name="horas_autorizadas" step="0.25" min="0" required>
+        </div>
+        <div class="form-group">
+            <label>Hora inicio reportada</label>
+            <input type="datetime-local" name="hora_inicio_reportada">
+        </div>
+        <div class="form-group">
+            <label>Hora fin reportada</label>
+            <input type="datetime-local" name="hora_fin_reportada">
+        </div>
+        <div class="form-group">
+            <label>Tipo evidencia *</label>
+            <select name="tipo_evidencia" required>
+                <option value="">Seleccionar</option>
+                <option value="OMISION_CHECADA">Omisión de checada</option>
+                <option value="FALLA_CHECADOR">Falla de checador</option>
+                <option value="FALLA_ELECTRICA">Falla eléctrica</option>
+                <option value="VIGILANCIA">Vigilancia</option>
+                <option value="AJUSTE_SUPERVISOR">Ajuste supervisor</option>
+                <option value="TIEMPO_PENDIENTE">Tiempo pendiente</option>
+                <option value="OTRO">Otro</option>
+            </select>
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Motivo *</label>
+            <input type="text" name="motivo" placeholder="Describe la causa" required>
+        </div>
+        <div style="grid-column: 1 / -1; display: flex; gap: 12px;">
+            <button type="submit" class="btn-primary">✓ Guardar HE manual</button>
+            <button type="button" class="btn-secondary" onclick="cerrarManual()">Cancelar</button>
+        </div>
+    </form>
+</section>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>HE detectada por jornada</h3>
+            <p>Eventos de tiempo extra detectados para revisión y autorización.</p>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Tipo</th>
+                    <th>Salida esperada</th>
+                    <th>Salida real</th>
+                    <th>HE base</th>
+                    <th>Ajuste</th>
+                    <th>HE final</th>
+                    <th>Origen</th>
+                    <th>Estatus</th>
+                    <th>Supervisor</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in eventos %}
+                <tr>
+                    <td>{{ e.fecha_operativa }}</td>
+                    <td><strong>{{ e.numero_empleado }}</strong></td>
+                    <td>{{ e.nombre_completo }}</td>
+                    <td>{{ e.departamento }}</td>
+                    <td><span class="badge badge-blue">{{ e.tipo_he }}</span></td>
+                    <td>{{ e.salida_esperada or '-' }}</td>
+                    <td>{{ e.checada_salida_valida or e.ultima_checada or '-' }}</td>
+                    <td><strong>{{ e.horas_detectadas }}</strong></td>
+                    <td>
+                        {% if e.horas_ajuste and e.horas_ajuste != 0 %}
+                            <strong>{{ e.horas_ajuste }}</strong>
+                        {% else %}
+                            0.00
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ e.horas_autorizadas }}</strong></td>
+                    <td>
+                        {% if e.origen == "MANUAL" %}
+                            <span class="badge badge-yellow">Manual</span>
+                        {% else %}
+                            <span class="badge badge-gray">NOVA</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e.estatus == 'PENDIENTE' %}
+                            <span class="badge badge-yellow">PENDIENTE</span>
+                        {% elif e.estatus == 'CONFIRMADA' %}
+                            <span class="badge badge-green">CONFIRMADA</span>
+                        {% elif e.estatus == 'RECHAZADA' %}
+                            <span class="badge badge-red">RECHAZADA</span>
+                        {% else %}
+                            <span class="badge badge-gray">{{ e.estatus }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ e.supervisor_nombre }}</td>
+                    <td>
+                        {% if e.estatus == 'PENDIENTE' %}
+                            <div class="action-buttons">
+                                <form method="post" action="/he-control/confirmar">
+                                    {% if token %}<input type="hidden" name="token" value="{{ token }}">{% endif %}
+                                    <input type="hidden" name="evento_id" value="{{ e.id }}">
+                                    <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
+                                    <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
+                                    <input type="hidden" name="departamento" value="{{ departamento }}">
+                                    <input type="hidden" name="estatus" value="{{ estatus }}">
+                                    <button class="btn-mini btn-confirm" type="submit">Confirmar</button>
+                                </form>
+                                <form method="post" action="/he-control/rechazar">
+                                    {% if token %}<input type="hidden" name="token" value="{{ token }}">{% endif %}
+                                    <input type="hidden" name="evento_id" value="{{ e.id }}">
+                                    <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
+                                    <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
+                                    <input type="hidden" name="departamento" value="{{ departamento }}">
+                                    <input type="hidden" name="estatus" value="{{ estatus }}">
+                                    <input type="hidden" name="motivo" value="Rechazado en Control HE">
+                                    <button class="btn-mini btn-reject" type="submit">Rechazar</button>
+                                </form>
+                                <button class="btn-mini btn-adjust" type="button" onclick="abrirAjuste('{{ e.id }}', '{{ e.numero_empleado }}', '{{ e.nombre_completo }}', '{{ e.horas_detectadas }}', '{{ e.horas_autorizadas }}')">Ajustar</button>
+                            </div>
+                        {% else %}
+                            <span class="text-muted">{{ e.respondido_por or "-" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<section id="form-ajuste-he" class="card mt-24" style="display: none;">
+    <div class="section-header">
+        <div>
+            <h3>Ajustar HE</h3>
+            <p>Modificar las horas de tiempo extra con justificación.</p>
+        </div>
+    </div>
+    <form method="post" action="/he-control/agregar-ajuste" class="form-grid">
+        {% if token %}<input type="hidden" name="token" value="{{ token }}">{% endif %}
+        <input type="hidden" name="evento_base_id" id="ajuste_evento_base_id">
+        <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
+        <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
+        <input type="hidden" name="departamento_filtro" value="{{ departamento }}">
+        <input type="hidden" name="estatus_filtro" value="{{ estatus }}">
+        
+        <div class="form-group">
+            <label>Empleado</label>
+            <input type="text" id="ajuste_empleado" readonly class="input-disabled">
+        </div>
+        <div class="form-group">
+            <label>HE base NOVA</label>
+            <input type="text" id="ajuste_he_base" readonly class="input-disabled">
+        </div>
+        <div class="form-group">
+            <label>HE actual final</label>
+            <input type="text" id="ajuste_he_final_actual" readonly class="input-disabled">
+        </div>
+        <div class="form-group">
+            <label>Tipo ajuste *</label>
+            <select name="tipo_ajuste" required>
+                <option value="SUMAR">Sumar HE</option>
+                <option value="RESTAR">Restar HE</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Horas ajuste *</label>
+            <input type="number" name="horas_ajuste" step="0.25" min="0" required>
+        </div>
+        <div class="form-group">
+            <label>Tipo evidencia *</label>
+            <select name="tipo_evidencia" required>
+                <option value="VIGILANCIA">Vigilancia</option>
+                <option value="OMISION_CHECADA">Omisión de checada</option>
+                <option value="FALLA_CHECADOR">Falla de checador</option>
+                <option value="FALLA_ELECTRICA">Falla eléctrica</option>
+                <option value="AJUSTE_SUPERVISOR">Ajuste supervisor</option>
+                <option value="TIEMPO_PENDIENTE">Tiempo pendiente</option>
+                <option value="OTRO">Otro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Hora inicio reportada</label>
+            <input type="datetime-local" name="hora_inicio_reportada">
+        </div>
+        <div class="form-group">
+            <label>Hora fin reportada</label>
+            <input type="datetime-local" name="hora_fin_reportada">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Motivo *</label>
+            <input type="text" name="motivo" placeholder="Describe la causa del ajuste" required>
+        </div>
+        <div style="grid-column: 1 / -1; display: flex; gap: 12px;">
+            <button type="submit" class="btn-primary">✓ Guardar ajuste</button>
+            <button type="button" class="btn-secondary" onclick="cerrarAjuste()">Cancelar</button>
+        </div>
+    </form>
+</section>
+
+<script>
+function abrirAjuste(eventoId, numeroEmpleado, nombreEmpleado, heBase, heFinal) {
+    document.getElementById("form-ajuste-he").style.display = "block";
+    document.getElementById("ajuste_evento_base_id").value = eventoId;
+    document.getElementById("ajuste_empleado").value = numeroEmpleado + " - " + nombreEmpleado;
+    document.getElementById("ajuste_he_base").value = heBase;
+    document.getElementById("ajuste_he_final_actual").value = heFinal;
+    document.getElementById("form-ajuste-he").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+function cerrarAjuste() {
+    document.getElementById("form-ajuste-he").style.display = "none";
+}
+
+function cerrarManual() {
+    document.getElementById("forma-manual").style.display = "none";
+}
+</script>
+{% endblock %}

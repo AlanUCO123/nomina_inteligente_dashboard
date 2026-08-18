@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA Personal - Reporte diario{% endblock %}
+{% block breadcrumb %}Asistencia / Reporte diario{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Reporte Ejecutivo Diario de Asistencia</h1>
+    <p>Radiografía diaria de asistencia, checadas, horarios e incidencias.</p>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <div>
+            <h3>Filtros</h3>
+            <p>Consulta la asistencia diaria por departamento, horario y semáforo.</p>
+        </div>
+    </div>
+
+    <form method="get" action="/asistencia/reporte-diario" class="filters-grid reporte-filters">
+        <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" name="fecha" value="{{ fecha }}">
+        </div>
+
+        <div class="form-group">
+            <label>Departamento</label>
+            <select name="departamento">
+                <option value="TODOS" {% if departamento == 'TODOS' %}selected{% endif %}>TODOS</option>
+                {% for d in departamentos %}
+                    <option value="{{ d }}" {% if departamento == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Tipo horario</label>
+            <select name="tipo_horario">
+                <option value="TODOS" {% if tipo_horario == 'TODOS' %}selected{% endif %}>TODOS</option>
+                <option value="DIURNO" {% if tipo_horario == 'DIURNO' %}selected{% endif %}>DIURNO</option>
+                <option value="VESPERTINO" {% if tipo_horario == 'VESPERTINO' %}selected{% endif %}>VESPERTINO</option>
+                <option value="NOCTURNO" {% if tipo_horario == 'NOCTURNO' %}selected{% endif %}>NOCTURNO</option>
+                <option value="SIN_HORARIO" {% if tipo_horario == 'SIN_HORARIO' %}selected{% endif %}>SIN HORARIO</option>
+                <option value="ESPECIAL" {% if tipo_horario == 'ESPECIAL' %}selected{% endif %}>ESPECIAL</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Grupo horario</label>
+            <select name="grupo_horario">
+                <option value="TODOS" {% if grupo_horario == 'TODOS' %}selected{% endif %}>TODOS</option>
+                {% for g in grupos_horario %}
+                    <option value="{{ g }}" {% if grupo_horario == g %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Semáforo</label>
+            <select name="semaforo">
+                <option value="TODOS" {% if semaforo == 'TODOS' %}selected{% endif %}>TODOS</option>
+                <option value="VERDE" {% if semaforo == 'VERDE' %}selected{% endif %}>VERDE</option>
+                <option value="AMARILLO" {% if semaforo == 'AMARILLO' %}selected{% endif %}>AMARILLO</option>
+                <option value="ROJO" {% if semaforo == 'ROJO' %}selected{% endif %}>ROJO</option>
+                <option value="GRIS" {% if semaforo == 'GRIS' %}selected{% endif %}>GRIS</option>
+            </select>
+        </div>
+
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button class="btn-primary" type="submit">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="grid-4 mt-18">
+    <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div>
+            <span>Plantilla</span>
+            <strong>{{ kpis.plantilla or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>Presentes</span>
+            <strong>{{ kpis.presentes or 0 }}</strong>
+        </div>
+    </div>
+
+    <a class="kpi-card kpi-link" href="/asistencia/reporte-diario?fecha={{ fecha }}&departamento={{ departamento }}&tipo_horario={{ tipo_horario }}&grupo_horario={{ grupo_horario }}&semaforo=ROJO">
+        <div class="kpi-icon">🔴</div>
+        <div>
+            <span>Críticos</span>
+            <strong class="text-danger-bold">{{ kpis.criticos or 0 }}</strong>
+        </div>
+    </a>
+
+    <a class="kpi-card kpi-link" href="/asistencia/reporte-diario?fecha={{ fecha }}&departamento={{ departamento }}&tipo_horario={{ tipo_horario }}&grupo_horario={{ grupo_horario }}&semaforo=AMARILLO">
+        <div class="kpi-icon">🟡</div>
+        <div>
+            <span>Pendientes revisión</span>
+            <strong class="text-danger-bold">{{ kpis.pendientes_revision or 0 }}</strong>
+        </div>
+    </a>
+</div>
+
+<div class="grid-4 mt-18">
+    <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div>
+            <span>Retardos</span>
+            <strong class="text-danger-bold">{{ kpis.retardos or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🚪</div>
+        <div>
+            <span>Sin entrada / falta probable</span>
+            <strong class="text-danger-bold">{{ kpis.sin_entrada or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⏱</div>
+        <div>
+            <span>HE detectada</span>
+            <strong class="text-success-bold">{{ kpis.he_detectada or 0 }}</strong>
+        </div>
+    </div>
+
+    <a class="kpi-card kpi-link" href="/he-control?fecha_inicio={{ fecha }}&fecha_fin={{ fecha }}&estatus=PENDIENTE">
+        <div class="kpi-icon">🟢</div>
+        <div>
+            <span>HE pendiente</span>
+            <strong class="text-success-bold">{{ kpis.he_pendiente or 0 }}</strong>
+        </div>
+    </a>
+</div>
+
+<div class="card mt-18 module-banner">
+    <p style="margin: 0;">
+        <strong>Nota:</strong> Este reporte base se calcula con jornadas y checadas. En la siguiente fase se integrarán vacaciones, permisos totales y permisos parciales para separar incidencias reales de incidencias justificadas.
+    </p>
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Distribución operativa de horarios</h3>
+            <p>Concentración de personal por tipo y grupo de horario. Ayuda a distinguir turnos diurnos, vespertinos, nocturnos y sin horario.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+        {% for r in por_horario %}
+        <a href="/asistencia/reporte-diario?fecha={{ fecha }}&departamento={{ departamento }}&tipo_horario={{ r.tipo_horario }}&grupo_horario={{ r.grupo_horario }}&semaforo={{ semaforo }}" style="text-decoration: none; color: inherit;">
+            <div style="background: #f8fbff; border-left: 4px solid #1769ff; padding: 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" class="horario-card">
+                <div style="font-size: 12px; color: #64748b; font-weight: 700;">{{ r.tipo_horario }}</div>
+                <div style="font-size: 13px; color: #475569; margin: 4px 0 0 0;">{{ r.grupo_horario }}</div>
+                <div style="font-size: 22px; font-weight: 800; color: #1769ff; margin-top: 8px;">{{ r.empleados }}</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">empleados</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Distribución por horario</h3>
+            <p>Clasificación operativa de los horarios del personal.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Tipo horario</th>
+                    <th>Grupo horario</th>
+                    <th>Empleados</th>
+                    <th>En tiempo</th>
+                    <th>Retardos</th>
+                    <th>Sin entrada</th>
+                    <th>Sin salida</th>
+                    <th>HE detectada</th>
+                    <th>HE final</th>
+                    <th>HE pendiente</th>
+                    <th>Críticos</th>
+                    <th>Pendientes rev.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in por_horario %}
+                <tr>
+                    <td><span class="badge badge-blue">{{ r.tipo_horario }}</span></td>
+                    <td>{{ r.grupo_horario }}</td>
+                    <td><strong>{{ r.empleados or 0 }}</strong></td>
+                    <td>{{ r.en_tiempo or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.retardos or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.sin_entrada or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.sin_salida or 0 }}</td>
+                    <td class="text-success-bold">{{ "%.2f"|format(r.he_detectada or 0) }}</td>
+                    <td class="text-success-bold">{{ "%.2f"|format(r.he_final or 0) }}</td>
+                    <td class="text-success-bold">{{ r.he_pendiente or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.criticos or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.pendientes_revision or 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Resumen por departamento</h3>
+            <p>Indicadores ejecutivos de asistencia por área.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Departamento</th>
+                    <th>Plantilla</th>
+                    <th>Presentes</th>
+                    <th>En tiempo</th>
+                    <th>Retardos</th>
+                    <th>Sin entrada</th>
+                    <th>Sin salida</th>
+                    <th>HE detectada</th>
+                    <th>HE final</th>
+                    <th>HE pendiente</th>
+                    <th>Críticos</th>
+                    <th>Pendientes rev.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in por_departamento %}
+                <tr>
+                    <td><strong>{{ d.departamento or 'SIN DEPTO' }}</strong></td>
+                    <td>{{ d.plantilla or 0 }}</td>
+                    <td>{{ d.presentes or 0 }}</td>
+                    <td>{{ d.en_tiempo or 0 }}</td>
+                    <td class="text-danger-bold">{{ d.retardos or 0 }}</td>
+                    <td class="text-danger-bold">{{ d.sin_entrada or 0 }}</td>
+                    <td class="text-danger-bold">{{ d.sin_salida or 0 }}</td>
+                    <td class="text-success-bold">{{ "%.2f"|format(d.he_detectada or 0) }}</td>
+                    <td class="text-success-bold">{{ "%.2f"|format(d.he_final or 0) }}</td>
+                    <td class="text-success-bold">{{ d.he_pendiente or 0 }}</td>
+                    <td class="text-danger-bold">{{ d.criticos or 0 }}</td>
+                    <td class="text-danger-bold">{{ d.pendientes_revision or 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Detalle accionable</h3>
+            <p>Primeros 100 registros en semáforo rojo o amarillo.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Semáforo</th>
+                    <th>Tipo de alerta</th>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Supervisor</th>
+                    <th>Grupo horario</th>
+                    <th>Entrada esperada</th>
+                    <th>Entrada real</th>
+                    <th>Salida esperada</th>
+                    <th>Salida real</th>
+                    <th>HE</th>
+                    <th>Observación</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for x in detalle %}
+                <tr>
+                    <td>
+                        {% if x.semaforo == 'ROJO' %}
+                            <span class="badge badge-red">ROJO</span>
+                        {% elif x.semaforo == 'AMARILLO' %}
+                            <span class="badge badge-yellow">AMARILLO</span>
+                        {% else %}
+                            <span class="badge badge-gray">{{ x.semaforo }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if 'SIN_ENTRADA' in x.estatus_ejecutivo %}
+                            <span class="badge badge-red">Sin entrada</span>
+                        {% elif 'SIN_SALIDA' in x.estatus_ejecutivo %}
+                            <span class="badge badge-red">Sin salida</span>
+                        {% elif 'RETARDO' in x.estatus_ejecutivo %}
+                            <span class="badge badge-yellow">Retardo</span>
+                        {% elif x.horas_extra_detectadas and x.horas_extra_detectadas > 0 and x.estatus_he == 'PENDIENTE' %}
+                            <span class="badge badge-blue">HE pendiente</span>
+                        {% elif x.tipo_horario == 'SIN_HORARIO' or x.tipo_horario == 'sin_horario' %}
+                            <span class="badge badge-gray">Sin horario</span>
+                        {% else %}
+                            <span class="badge badge-gray">Otra</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ x.numero_empleado }}</strong></td>
+                    <td>{{ x.nombre_completo }}</td>
+                    <td>{{ x.departamento }}</td>
+                    <td>{{ x.supervisor or '-' }}</td>
+                    <td>{{ x.grupo_horario }}</td>
+                    <td>{{ x.entrada_esperada or '-' }}</td>
+                    <td>{{ x.checada_entrada_valida or '-' }}</td>
+                    <td>{{ x.salida_esperada or '-' }}</td>
+                    <td>{{ x.checada_salida_valida or '-' }}</td>
+                    <td class="text-success-bold">{{ "%.2f"|format(x.horas_extra_detectadas or 0) }}</td>
+                    <td>{{ x.observacion_ejecutiva or '-' }}</td>
+                    <td>
+                        <a class="btn-mini btn-confirm"
+                        href="/asistencia/mis-checadas?numero_empleado={{ x.numero_empleado }}&fecha_inicio={{ fecha_inicio_semana }}&fecha_fin={{ fecha_fin_semana }}">
+                            Ver checadas
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

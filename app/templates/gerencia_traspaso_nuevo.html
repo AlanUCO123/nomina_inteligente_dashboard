@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Nuevo Traspaso
+{% endblock %}
+
+{% block breadcrumb %}
+Gerencia / Traspaso de personal / Nuevo
+{% endblock %}
+
+
+{% block content %}
+
+<div class="ger-page">
+
+    <div class="ger-page-header">
+
+        <div>
+
+            <a
+                href="/gerencia/traspasos"
+                class="ger-back"
+            >
+                ← Volver a traspasos
+            </a>
+
+            <span class="ger-eyebrow">
+                NUEVO TRASPASO
+            </span>
+
+            <h1>
+                🔄 Traspaso de Personal
+            </h1>
+
+            <p>
+                Selecciona al empleado y el
+                departamento de destino.
+            </p>
+
+        </div>
+
+
+        <div class="ger-readonly-badge">
+
+            🛡️
+
+            <span>
+                <strong>Modo validación</strong>
+
+                <small>
+                    No se guardará ningún cambio
+                </small>
+            </span>
+
+        </div>
+
+    </div>
+
+
+    {% if resultado %}
+
+        {% if resultado.ok %}
+
+        <div class="ger-validation-success">
+
+            <strong>
+                ✓ Traspaso validado correctamente
+            </strong>
+
+            <p>
+                La información es válida.
+                <b>No se creó ningún registro.</b>
+            </p>
+
+
+            <div class="ger-validation-grid">
+
+                <div>
+                    <span>Empleado</span>
+                    <strong>
+                        {{ resultado.empleado }}
+                    </strong>
+
+                    <small>
+                        No. {{ resultado.numero_empleado }}
+                    </small>
+                </div>
+
+                <div>
+                    <span>Origen actual</span>
+                    <strong>
+                        {{ resultado.origen }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Área destino</span>
+                    <strong>
+                        {{ resultado.area_destino }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Departamento destino</span>
+                    <strong>
+                        {{ resultado.departamento_destino }}
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="ger-validation-error">
+
+            <strong>
+                Revisa la información
+            </strong>
+
+            <ul>
+                {% for error in resultado.errores %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+        {% endif %}
+
+    {% endif %}
+
+
+    <form
+        method="post"
+        action="/gerencia/traspasos/nuevo/validar"
+        class="ger-card ger-transfer-form"
+    >
+
+        <div class="ger-form-section">
+
+            <span class="ger-section-label">
+                EMPLEADO
+            </span>
+
+            <h2>
+                Selecciona al empleado
+            </h2>
+
+            <p>
+                Solo aparecen empleados que actualmente
+                pertenecen a tu gerencia.
+            </p>
+
+
+            <label class="ger-field">
+
+                <span>
+                    Empleado a traspasar
+                </span>
+
+                <select
+                    name="numero_empleado"
+                    required
+                >
+
+                    <option value="">
+                        -- Seleccione un empleado --
+                    </option>
+
+                    {% for empleado in equipo %}
+
+                    <option
+                        value="{{ empleado.numero_empleado }}"
+
+                        {% if formulario.numero_empleado == empleado.numero_empleado|string %}
+                            selected
+                        {% endif %}
+                    >
+                        [{{ empleado.numero_empleado }}]
+                        {{ empleado.nombre_completo }}
+                        ·
+                        {{ empleado.departamento_intelisis }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </label>
+
+        </div>
+
+
+        <div class="ger-form-section">
+
+            <span class="ger-section-label">
+                DEPARTAMENTO DE DESTINO
+            </span>
+
+            <div class="ger-form-grid">
+
+                <label class="ger-field">
+
+                    <span>
+                        Área
+                    </span>
+
+                    <select
+                        id="gerAreaDestino"
+                        name="area_destino"
+                        required
+                    >
+
+                        <option value="">
+                            -- Seleccione un Área --
+                        </option>
+
+                        {% for item in catalogo_destinos %}
+
+                        <option
+                            value="{{ item.area }}"
+
+                            {% if formulario.area_destino == item.area %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ item.area }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </label>
+
+
+                <label class="ger-field">
+
+                    <span>
+                        Departamento
+                    </span>
+
+                    <select
+                        id="gerDepartamentoDestino"
+                        name="departamento_destino"
+                        required
+                    >
+
+                        <option value="">
+                            -- Seleccione un Departamento --
+                        </option>
+
+                    </select>
+
+                </label>
+
+            </div>
+
+
+            <label class="ger-field">
+
+                <span>
+                    Motivo del traspaso
+                </span>
+
+                <textarea
+                    name="motivo"
+                    rows="4"
+                    maxlength="500"
+                    required
+                    placeholder="Describe el motivo del movimiento..."
+                >{{ formulario.motivo or '' }}</textarea>
+
+            </label>
+
+        </div>
+
+
+        <div class="ger-form-note">
+            ℹ️
+            Esta pantalla solamente valida
+            empleado, destino y motivo.
+            No inserta ni modifica información
+            en portalWyny ni Intelisis.
+        </div>
+
+
+        <div class="ger-form-actions">
+
+            <a
+                href="/gerencia/traspasos"
+                class="ger-btn ger-btn-secondary"
+            >
+                Cancelar
+            </a>
+
+            <button
+                type="submit"
+                class="ger-btn ger-btn-primary"
+            >
+                Validar traspaso
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script
+    type="application/json"
+    id="gerCatalogoDestinos"
+>
+{{ catalogo_destinos | tojson }}
+</script>
+
+<input
+    type="hidden"
+    id="departamentoSeleccionadoInicial"
+    value="{{ formulario.departamento_destino or '' }}"
+>
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const areaSelect =
+            document.getElementById(
+                "gerAreaDestino"
+            );
+
+        const departamentoSelect =
+            document.getElementById(
+                "gerDepartamentoDestino"
+            );
+
+        const catalogoElement =
+            document.getElementById(
+                "gerCatalogoDestinos"
+            );
+
+        if (
+            !areaSelect
+            ||
+            !departamentoSelect
+            ||
+            !catalogoElement
+        ) {
+            return;
+        }
+
+
+        let catalogo = [];
+
+        try {
+            catalogo = JSON.parse(
+                catalogoElement.textContent
+            );
+        } catch (error) {
+            console.error(
+                "No se pudo cargar "
+                + "el catálogo de destinos",
+                error
+            );
+        }
+
+
+        const departamentoSeleccionado =
+            document.getElementById("departamentoSeleccionadoInicial")?.value || "";
+
+
+        function cargarDepartamentos() {
+
+            const area =
+                areaSelect.value;
+
+            departamentoSelect.innerHTML =
+                '<option value="">'
+                + '-- Seleccione un Departamento --'
+                + '</option>';
+
+
+            const registro =
+                catalogo.find(
+                    function (item) {
+                        return item.area === area;
+                    }
+                );
+
+
+            if (!registro) {
+                return;
+            }
+
+
+            registro.departamentos.forEach(
+                function (departamento) {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+                    option.value =
+                        departamento;
+
+                    option.textContent =
+                        departamento;
+
+
+                    if (
+                        departamento
+                        ===
+                        departamentoSeleccionado
+                    ) {
+                        option.selected = true;
+                    }
+
+
+                    departamentoSelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+        }
+
+
+        areaSelect.addEventListener(
+            "change",
+            cargarDepartamentos
+        );
+
+
+        cargarDepartamentos();
+
+    }
+);
+</script>
+
+{% endblock %}

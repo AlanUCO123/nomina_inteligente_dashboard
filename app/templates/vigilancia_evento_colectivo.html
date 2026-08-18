@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA - Evento colectivo{% endblock %}
+{% block breadcrumb %}Vigilancia / Evento colectivo{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Evento Colectivo de Vigilancia</h1>
+    <p>Captura masiva de movimientos por camión tarde, falla de checador, falla eléctrica o contingencias.</p>
+</div>
+
+<div class="card">
+    <h3>Crear evento colectivo</h3>
+    <p>Define el motivo general. Después agrega empleados uno por uno.</p>
+
+    <form method="post" action="/vigilancia/evento-colectivo/crear" class="filters-grid">
+        <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" name="fecha_operativa" value="{{ fecha }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Tipo evento</label>
+            <select name="tipo_evento" required>
+                <option value="CAMION_TARDE">Camión tarde</option>
+                <option value="FALLA_CHECADOR_ENTRADA">Falla checador entrada</option>
+                <option value="FALLA_CHECADOR_SALIDA">Falla checador salida</option>
+                <option value="FALLA_ELECTRICA">Falla eléctrica</option>
+                <option value="CONTINGENCIA_OPERATIVA">Contingencia operativa</option>
+                <option value="DIRECTOR_NO_CHECA">Director no checa</option>
+                <option value="AUTORIZACION_RH">Autorización RH</option>
+                <option value="OTRO">Otro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Movimiento</label>
+            <select name="tipo_movimiento" required>
+                <option value="ENTRADA_TARDE">Entrada tarde</option>
+                <option value="ENTRADA_SIN_CHECADA">Entrada sin checada</option>
+                <option value="SALIDA_SIN_CHECADA">Salida sin checada</option>
+                <option value="SALIDA_TEMPRANA">Salida temprana</option>
+                <option value="SALIDA_INTERMEDIA">Salida intermedia</option>
+                <option value="REGRESO_INTERMEDIO">Regreso intermedio</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Motivo</label>
+            <select name="motivo" required>
+                <option value="CAMION_TARDE">Camión tarde</option>
+                <option value="FALLA_CHECADOR">Falla checador</option>
+                <option value="FALLA_ELECTRICA">Falla eléctrica</option>
+                <option value="CONTINGENCIA">Contingencia</option>
+                <option value="DIRECTOR_NO_CHECA">Director no checa</option>
+                <option value="AUTORIZACION_RH">Autorización RH</option>
+                <option value="OTRO">Otro</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="grid-column: span 3;">
+            <label>Descripción</label>
+            <input type="text" name="descripcion" placeholder="Ej. Ruta León llegó tarde por tráfico">
+        </div>
+
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn-primary">Crear evento</button>
+        </div>
+    </form>
+</div>
+
+{% if evento_actual %}
+<div class="card mt-18">
+    <div class="section-header">
+        <div>
+            <h3>Evento activo #{{ evento_actual.id }}</h3>
+            <p>
+                {{ evento_actual.tipo_evento }} /
+                {{ evento_actual.tipo_movimiento }} /
+                {{ evento_actual.motivo }}
+            </p>
+        </div>
+        <span class="badge badge-blue">{{ evento_actual.estatus }}</span>
+    </div>
+
+    <div class="permiso-box">
+        <strong>Descripción:</strong> {{ evento_actual.descripcion or '-' }}<br>
+        <strong>Fecha/hora:</strong> {{ evento_actual.fecha_hora_evento }}<br>
+        <strong>Capturó:</strong> {{ evento_actual.capturado_por or '-' }}
+    </div>
+
+    <form method="post" action="/vigilancia/evento-colectivo/agregar-empleado" class="vig-add-form">
+        <input type="hidden" name="evento_id" value="{{ evento_actual.id }}">
+        <input type="hidden" name="fecha_operativa" value="{{ evento_actual.fecha_operativa }}">
+
+        <label>Agregar empleado</label>
+        <input type="text" name="numero_empleado" placeholder="Número de empleado" autofocus required>
+        <button type="submit" class="btn-primary">Agregar</button>
+    </form>
+
+    <div class="table-wrapper mt-18">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Entrada esperada</th>
+                    <th>Entrada real</th>
+                    <th>Salida esperada</th>
+                    <th>Salida real</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in detalle %}
+                <tr>
+                    <td><strong>{{ d.numero_empleado }}</strong></td>
+                    <td>{{ d.nombre_completo or '-' }}</td>
+                    <td>{{ d.departamento or '-' }}</td>
+                    <td>{{ d.entrada_esperada or '-' }}</td>
+                    <td>{{ d.checada_entrada_valida or '-' }}</td>
+                    <td>{{ d.salida_esperada or '-' }}</td>
+                    <td>{{ d.checada_salida_valida or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if detalle|length > 0 %}
+    <form method="post" action="/vigilancia/evento-colectivo/registrar-todos" class="mt-18">
+        <input type="hidden" name="evento_id" value="{{ evento_actual.id }}">
+        <input type="hidden" name="fecha_operativa" value="{{ evento_actual.fecha_operativa }}">
+        <button type="submit" class="btn-primary btn-wide">
+            Registrar movimiento para {{ detalle|length }} empleados
+        </button>
+    </form>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card mt-24">
+    <h3>Eventos colectivos del día</h3>
+    <p>Selecciona un evento para continuar capturando empleados.</p>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Hora</th>
+                    <th>Tipo evento</th>
+                    <th>Movimiento</th>
+                    <th>Motivo</th>
+                    <th>Descripción</th>
+                    <th>Estatus</th>
+                    <th>Capturó</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in eventos %}
+                <tr>
+                    <td><strong>#{{ e.id }}</strong></td>
+                    <td>{{ e.fecha_hora_evento }}</td>
+                    <td>{{ e.tipo_evento }}</td>
+                    <td><span class="badge badge-blue">{{ e.tipo_movimiento }}</span></td>
+                    <td>{{ e.motivo }}</td>
+                    <td>{{ e.descripcion or '-' }}</td>
+                    <td>
+                        {% if e.estatus == 'APLICADO' %}
+                            <span class="badge badge-green">APLICADO</span>
+                        {% else %}
+                            <span class="badge badge-yellow">{{ e.estatus }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ e.capturado_por or '-' }}</td>
+                    <td>
+                        <a class="btn-secondary"
+                           href="/vigilancia/evento-colectivo?fecha={{ fecha }}&evento_id={{ e.id }}">
+                            Abrir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

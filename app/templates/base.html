@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NOVA Personal{% endblock %}</title>
+    <link rel="stylesheet" href="/static/nova.css">
+</head>
+<body>
+<div class="nova-layout">
+    <!-- SIDEBAR -->
+    <aside class="nova-sidebar">
+        <div class="nova-brand">
+            <div class="nova-logo">◆</div>
+            <div>
+                <h1>NOVA</h1>
+                <p>Sistema Inteligente de<br>Asistencia y Nómina</p>
+            </div>
+        </div>
+        <nav class="nova-menu">
+
+            <!-- DASHBOARD -->
+            <a href="/home"
+            class="menu-item {% if request.url.path == '/home' %}active-page{% endif %}">
+                <span>▦</span>
+                <strong>Dashboard</strong>
+            </a>
+
+
+            <!-- =========================================
+                ASISTENCIA
+                ========================================= -->
+            <div class="menu-section {% if request.url.path.startswith('/asistencia') %}open{% endif %}">
+
+                <button type="button"
+                        class="menu-section-title"
+                        aria-expanded="{% if request.url.path.startswith('/asistencia') %}true{% else %}false{% endif %}">
+
+                    <span>◉</span>
+                    <strong>Asistencia</strong>
+                    <em class="menu-arrow">⌄</em>
+                </button>
+
+                <div class="menu-section-body">
+
+                    <a href="/asistencia/mis-checadas"
+                    class="submenu-item {% if request.url.path == '/asistencia/mis-checadas' %}active{% endif %}">
+                        Mis checadas
+                    </a>
+
+                    {% if "SUPERVISOR" in roles
+                        or "GERENTE" in roles
+                        or "DIRECTOR" in roles
+                        or "RH" in roles
+                        or "NOMINA" in roles
+                        or "SISTEMAS" in roles
+                        or "ADMIN" in roles %}
+
+                    <a href="/asistencia/personal"
+                    class="submenu-item {% if request.url.path == '/asistencia/personal' %}active{% endif %}">
+                        Checadas del personal
+                    </a>
+
+                    {% endif %}
+
+                    {% if "SUPERVISOR" in roles
+                        or "GERENTE" in roles
+                        or "ADMIN" in roles %}
+
+                    <a href="/asistencia/reporte-diario"
+                    class="submenu-item {% if request.url.path == '/asistencia/reporte-diario' %}active{% endif %}">
+                        Reporte diario
+                    </a>
+
+                    <a href="/asistencia/resumen-semanal"
+                    class="submenu-item {% if request.url.path == '/asistencia/resumen-semanal' %}active{% endif %}">
+                        Resumen semanal
+                    </a>
+
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- =========================================
+                SOLICITUDES
+                ========================================= -->
+
+            <div class="menu-section
+                {% if request.url.path.startswith('/solicitudes') %}
+                    open
+                {% endif %}
+            ">
+
+                <button
+                    type="button"
+                    class="menu-section-title"
+
+                    aria-expanded="
+                    {% if request.url.path.startswith('/solicitudes') %}
+                        true
+                    {% else %}
+                        false
+                    {% endif %}
+                    "
+                >
+
+                    <span>📅</span>
+
+                    <strong>
+                        Solicitudes
+                    </strong>
+
+                    <em class="menu-arrow">
+                        ⌄
+                    </em>
+
+                </button>
+
+
+                <div class="menu-section-body">
+
+                    <a
+                        href="/solicitudes"
+
+                        class="
+                            submenu-item
+                            {% if request.url.path == '/solicitudes' %}
+                                active
+                            {% endif %}
+                        "
+                    >
+                        Mis vacaciones y permisos
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- =========================================
+                GERENCIA
+                GERENTE / ADMIN
+                ========================================= -->
+
+            {% if "GERENTE" in roles
+                or "ADMIN" in roles %}
+
+            <div class="menu-section
+                {% if request.url.path.startswith('/gerencia') %}
+                    open
+                {% endif %}
+            ">
+
+                <button
+                    type="button"
+                    class="menu-section-title"
+
+                    aria-expanded="
+                    {% if request.url.path.startswith('/gerencia') %}
+                        true
+                    {% else %}
+                        false
+                    {% endif %}
+                    "
+                >
+
+                    <span>👔</span>
+
+                    <strong>
+                        Gerencia
+                    </strong>
+
+                    <em class="menu-arrow">
+                        ⌄
+                    </em>
+
+                </button>
+
+
+                <div class="menu-section-body">
+
+                    <a
+                        href="/gerencia/permisos"
+
+                        class="
+                            submenu-item
+                            {% if request.url.path.startswith('/gerencia/permisos') %}
+                                active
+                            {% endif %}
+                        "
+                    >
+                        Autorizar permisos
+                    </a>
+
+
+                    <a
+                        href="/gerencia/traspasos"
+
+                        class="
+                            submenu-item
+                            {% if request.url.path.startswith('/gerencia/traspasos') %}
+                                active
+                            {% endif %}
+                        "
+                    >
+                        Traspaso de personal
+                    </a>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+            <!-- =========================================
+                VIGILANCIA
+                Acceso temporal de pruebas:
+                ADMIN / SISTEMAS
+                ========================================= -->
+            {% if "ADMIN" in roles
+                or "SISTEMAS" in roles
+                or "VIGILANCIA" in roles %}
+
+            <div class="menu-section {% if request.url.path.startswith('/vigilancia') %}open{% endif %}">
+
+                <button type="button"
+                        class="menu-section-title"
+                        aria-expanded="{% if request.url.path.startswith('/vigilancia') %}true{% else %}false{% endif %}">
+
+                    <span>🛡️</span>
+                    <strong>Vigilancia</strong>
+                    <em class="menu-arrow">⌄</em>
+                </button>
+
+                <div class="menu-section-body">
+
+                    <a href="/vigilancia/movimientos"
+                    class="submenu-item {% if request.url.path == '/vigilancia/movimientos' %}active{% endif %}">
+                        Movimientos individuales
+                    </a>
+
+                    <a href="/vigilancia/evento-colectivo"
+                    class="submenu-item {% if request.url.path == '/vigilancia/evento-colectivo' %}active{% endif %}">
+                        Evento colectivo
+                    </a>
+
+                </div>
+            </div>
+
+            {% endif %}
+            
+            <!-- =========================================
+                CONTROL HE
+                ========================================= -->
+            {% if "ADMIN" in roles
+                or "SISTEMAS" in roles
+                or "RH" in roles
+                or "NOMINA" in roles
+                or (
+                    "DIRECTOR" not in roles
+                    and (
+                        "GERENTE" in roles
+                        or "SUPERVISOR" in roles
+                    )
+                )
+            %}
+
+            <div class="menu-section
+                {% if request.url.path.startswith('/he-control')
+                   or request.url.path.startswith('/horas-extra') %}
+                    open
+                {% endif %}">
+
+                <button type="button"
+                        class="menu-section-title"
+                        aria-expanded="
+                        {% if request.url.path.startswith('/he-control')
+                           or request.url.path.startswith('/horas-extra') %}
+                            true
+                        {% else %}
+                            false
+                        {% endif %}">
+
+                    <span>⏱</span>
+                    <strong>Control HE</strong>
+                    <em class="menu-arrow">⌄</em>
+                </button>
+
+                <div class="menu-section-body">
+
+                    <a href="/he-control"
+                    class="submenu-item
+                    {% if request.url.path.startswith('/he-control') %}active{% endif %}">
+                        Control HE en línea
+                    </a>
+
+                    <a href="/horas-extra"
+                    class="submenu-item
+                    {% if request.url.path.startswith('/horas-extra') %}active{% endif %}">
+                        Cierre de Horas Extra
+                    </a>
+
+                </div>
+            </div>
+
+            {% endif %}
+
+
+            <!-- =========================================
+                EMPLEADOS
+                ========================================= -->
+            {% if login_user == "iracheta"
+                or "ADMIN" in roles
+                or "SISTEMAS" in roles %}
+
+            <div class="menu-section {% if request.url.path.startswith('/empleados') %}open{% endif %}">
+
+                <button type="button"
+                        class="menu-section-title"
+                        aria-expanded="{% if request.url.path.startswith('/empleados') %}true{% else %}false{% endif %}">
+
+                    <span>👥</span>
+                    <strong>Empleados</strong>
+                    <em class="menu-arrow">⌄</em>
+                </button>
+
+                <div class="menu-section-body">
+
+                    <a href="/empleados/mantenimiento"
+                    class="submenu-item"
+                    target="_blank">
+                        Mantenimiento de datos
+                    </a>
+
+                </div>
+            </div>
+
+            {% endif %}
+
+
+            <!-- =========================================
+                NÓMINA
+                ========================================= -->
+            {% if "GERENTE" in roles
+                or "DIRECTOR" in roles
+                or "RH" in roles
+                or "NOMINA" in roles
+                or "ADMIN" in roles
+                or "SISTEMAS" in roles %}
+
+            <div class="menu-section {% if request.url.path.startswith('/nomina') %}open{% endif %}">
+
+                <button type="button"
+                        class="menu-section-title"
+                        aria-expanded="{% if request.url.path.startswith('/nomina') %}true{% else %}false{% endif %}">
+
+                    <span>💰</span>
+                    <strong>Nómina</strong>
+                    <em class="menu-arrow">⌄</em>
+                </button>
+
+                <div class="menu-section-body">
+
+                    <a href="/nomina/cambios-sueldo"
+                    class="submenu-item"
+                    target="_blank">
+                        Cambios de sueldo
+                    </a>
+
+                    <a href="#"
+                    class="submenu-item disabled-link">
+                        Cambios especiales empleados
+                        <small>Próx.</small>
+                    </a>
+
+                </div>
+            </div>
+
+            {% endif %}
+
+            <!-- =========================================
+                NOTIFICACIONES
+                TODOS LOS USUARIOS
+                ========================================= -->
+
+            <a
+                href="/notificaciones"
+                class="
+                    menu-item
+                    {% if request.url.path == '/notificaciones' %}
+                        active
+                    {% endif %}
+                "
+            >
+                <span>🔔</span>
+                <strong>Notificaciones</strong>
+            </a>
+
+            <!-- REPORTES -->
+            <a href="#"
+            class="menu-item disabled-link">
+                <span>📊</span>
+                <strong>Reportes</strong>
+                <small>Próx.</small>
+            </a>
+
+
+            <!-- =========================================
+                CONFIGURACIÓN
+                ========================================= -->
+            {% if "ADMIN" in roles or "SISTEMAS" in roles %}
+
+            <div class="menu-section">
+
+                <button type="button"
+                        class="menu-section-title"
+                        aria-expanded="false">
+
+                    <span>⚙</span>
+                    <strong>Configuración</strong>
+                    <em class="menu-arrow">⌄</em>
+                </button>
+
+                <div class="menu-section-body">
+
+                    <a href="#"
+                    class="submenu-item disabled-link">
+                        Usuarios y roles
+                        <small>Próx.</small>
+                    </a>
+
+                </div>
+            </div>
+
+            {% endif %}
+
+        </nav>
+        <div class="nova-support">
+            <strong>Soporte</strong>
+            <p>sistemas@wyny.mx</p>
+            <p>Ext. 1000</p>
+        </div>
+    </aside>
+    <!-- MAIN -->
+    <main class="nova-main">
+        <!-- TOPBAR -->
+        <header class="nova-topbar">
+            <div class="breadcrumb">
+                <span>☰</span>
+                <strong>{% block breadcrumb %}Dashboard{% endblock %}</strong>
+            </div>
+            <div class="topbar-right">
+                <div class="range-box">
+                    <span class="topbar-range">
+                        🗓️ Rango:
+                        <strong id="nova-rango-periodo"></strong>
+                    </span>
+                </div>
+                <div class="notification">
+                    🔔
+                    <span>3</span>
+                </div>
+                <div class="user-box">
+                    <div class="avatar">
+                        {{ (nombre_usuario or "N")[0:1] }}
+                    </div>
+                    <div>
+                        <strong>{{ nombre_usuario or "Usuario NOVA" }}</strong>
+                        <small>{{ roles | join(", ") if roles else "Sin rol" }}</small>
+                    </div>
+                    <a href="/logout">Salir</a>
+                </div>
+            </div>
+        </header>
+        <!-- CONTENT -->
+        <section class="nova-content">
+            {% block content %}{% endblock %}
+
+        </section>
+    </main>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const secciones = document.querySelectorAll(
+        ".nova-menu .menu-section"
+    );
+
+    secciones.forEach(function (seccion) {
+
+        const boton = seccion.querySelector(
+            ".menu-section-title"
+        );
+
+        if (!boton) {
+            return;
+        }
+
+        boton.addEventListener("click", function () {
+
+            const estabaAbierta =
+                seccion.classList.contains("open");
+
+
+            /*
+             * Cerramos las demás secciones.
+             * Así funciona como un acordeón:
+             * solamente una abierta a la vez.
+             */
+            secciones.forEach(function (otraSeccion) {
+
+                if (otraSeccion !== seccion) {
+
+                    otraSeccion.classList.remove("open");
+
+                    const otroBoton =
+                        otraSeccion.querySelector(
+                            ".menu-section-title"
+                        );
+
+                    if (otroBoton) {
+                        otroBoton.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+                    }
+                }
+            });
+
+
+            /*
+             * Abrimos o cerramos la seleccionada.
+             */
+            if (estabaAbierta) {
+
+                seccion.classList.remove("open");
+
+                boton.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+
+            } else {
+
+                seccion.classList.add("open");
+
+                boton.setAttribute(
+                    "aria-expanded",
+                    "true"
+                );
+            }
+
+        });
+
+    });
+
+});
+</script>
+
+<script>
+(function () {
+    const meses = [
+        "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+        "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+    ];
+
+    function parseFecha(valor) {
+        if (!valor) return null;
+
+        const partes = String(valor).substring(0, 10).split("-");
+        if (partes.length !== 3) return null;
+
+        return new Date(
+            Number(partes[0]),
+            Number(partes[1]) - 1,
+            Number(partes[2])
+        );
+    }
+
+    function obtenerPeriodoActual() {
+        const hoy = new Date();
+
+        // JavaScript:
+        // domingo=0, lunes=1, martes=2, miércoles=3...
+        const diasDesdeMiercoles = (hoy.getDay() - 3 + 7) % 7;
+
+        const inicio = new Date(hoy);
+        inicio.setDate(hoy.getDate() - diasDesdeMiercoles);
+
+        const fin = new Date(inicio);
+        fin.setDate(inicio.getDate() + 6);
+
+        return { inicio, fin };
+    }
+
+    function formatearPeriodo(inicio, fin) {
+        const diaInicio = String(inicio.getDate()).padStart(2, "0");
+        const diaFin = String(fin.getDate()).padStart(2, "0");
+
+        const mesInicio = meses[inicio.getMonth()];
+        const mesFin = meses[fin.getMonth()];
+
+        const anioInicio = inicio.getFullYear();
+        const anioFin = fin.getFullYear();
+
+        if (
+            inicio.getMonth() === fin.getMonth() &&
+            anioInicio === anioFin
+        ) {
+            return `${diaInicio} ${mesInicio} – ${diaFin} ${mesFin} ${anioFin}`;
+        }
+
+        if (anioInicio === anioFin) {
+            return `${diaInicio} ${mesInicio} – ${diaFin} ${mesFin} ${anioFin}`;
+        }
+
+        return `${diaInicio} ${mesInicio} ${anioInicio} – ${diaFin} ${mesFin} ${anioFin}`;
+    }
+
+    const elemento = document.getElementById("nova-rango-periodo");
+
+    if (!elemento) return;
+
+    // Si la pantalla ya recibió fecha_inicio / fecha_fin,
+    // usamos exactamente ese periodo.
+    let inicio = parseFecha("{{ fecha_inicio if fecha_inicio is defined else '' }}");
+    let fin = parseFecha("{{ fecha_fin if fecha_fin is defined else '' }}");
+
+    // Si la pantalla no recibió fechas,
+    // calculamos automáticamente miércoles → martes.
+    if (!inicio || !fin) {
+        const periodo = obtenerPeriodoActual();
+        inicio = periodo.inicio;
+        fin = periodo.fin;
+    }
+
+    elemento.textContent = formatearPeriodo(inicio, fin);
+})();
+</script>
+</body>
+</html>

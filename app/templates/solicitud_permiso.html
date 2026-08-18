@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Solicitar Permiso
+{% endblock %}
+
+{% block breadcrumb %}
+Solicitudes / Solicitar Permiso
+{% endblock %}
+
+
+{% block content %}
+
+<div class="vac-page">
+
+    <div class="vac-header">
+
+        <div>
+
+            <span class="vac-eyebrow">
+                NUEVA SOLICITUD
+            </span>
+
+            <h1>
+                Solicitar Permiso
+            </h1>
+
+            <p>
+                Selecciona el periodo de ausencia e indica el motivo.
+            </p>
+
+        </div>
+
+
+        <div class="vac-safe-badge">
+
+            <span>🛡️</span>
+
+            <div>
+                <strong>
+                    Modo validación
+                </strong>
+
+                <small>
+                    Todavía no se guarda la solicitud
+                </small>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% if error %}
+
+    <div class="sol-alert sol-alert-error">
+        {{ error }}
+    </div>
+
+    {% endif %}
+
+
+    {% if empleado_portal %}
+
+    <section class="vac-employee-card">
+
+        <div class="vac-avatar">
+            {{ empleado_portal.nombreCompleto[:1] }}
+        </div>
+
+
+        <div class="vac-employee-main">
+
+            <span>
+                Empleado
+            </span>
+
+            <strong>
+                {{ empleado_portal.nombreCompleto }}
+            </strong>
+
+            <small>
+                No. {{ empleado_portal.numeroEmpleado }}
+            </small>
+
+        </div>
+
+
+        {% if vacaciones_resumen %}
+
+        <div class="vac-employee-department">
+
+            <span>
+                Departamento
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.departamento }}
+            </strong>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+
+    {% if vacaciones_resumen %}
+
+    <section class="perm-employee-summary">
+
+        <div>
+
+            <span>
+                📅 Aniversario
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.aniversario }}
+            </strong>
+
+            <small>
+                {{ vacaciones_resumen.antiguedad_anios }} años
+            </small>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                👥 Supervisor
+            </span>
+
+            <strong>
+                {{ vacaciones_resumen.supervisor }}
+            </strong>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    <section class="perm-card">
+
+        <div class="perm-card-header">
+
+            <span>
+                PERMISO
+            </span>
+
+            <h2>
+                Datos de la solicitud
+            </h2>
+
+            <p>
+                Conservamos el mismo flujo del Portal WYNY:
+                fechas y motivo.
+            </p>
+
+        </div>
+
+
+        <form
+            method="post"
+            action="/solicitudes/permiso/validar"
+            id="permiso_form"
+        >
+
+            <div class="perm-grid">
+
+                <div class="perm-field">
+
+                    <label>
+                        Fecha inicial
+                    </label>
+
+                    <input
+                        type="date"
+                        id="fecha_inicio"
+                        name="fecha_inicio"
+                        min="{{ hoy_iso }}"
+                        value="{{ form_data.fecha_inicio or '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="perm-field">
+
+                    <label>
+                        Fecha final
+                    </label>
+
+                    <input
+                        type="date"
+                        id="fecha_final"
+                        name="fecha_final"
+                        min="{{ hoy_iso }}"
+                        value="{{ form_data.fecha_final or '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="perm-field perm-span-2">
+
+                    <label>
+                        Motivo
+                    </label>
+
+                    <textarea
+                        name="motivo"
+                        id="motivo"
+                        maxlength="1000"
+                        required
+                        placeholder="Escribe el motivo del permiso..."
+                    >{{ form_data.motivo or '' }}</textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="perm-form-footer">
+
+                <a
+                    href="/solicitudes"
+                    class="vac-btn vac-btn-secondary"
+                >
+                    Cancelar
+                </a>
+
+                <button
+                    type="submit"
+                    class="vac-btn vac-btn-primary"
+                >
+                    Validar solicitud
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    {% if preview %}
+
+    <section class="perm-preview">
+
+        <div class="perm-card-header">
+
+            <span>
+                RESULTADO
+            </span>
+
+            <h2>
+                Validación del permiso
+            </h2>
+
+        </div>
+
+
+        <div class="perm-preview-grid">
+
+            <div>
+
+                <span>
+                    Fecha inicial
+                </span>
+
+                <strong>
+                    {{ preview.fecha_inicio }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Fecha final
+                </span>
+
+                <strong>
+                    {{ preview.fecha_final }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Días hábiles
+                </span>
+
+                <strong>
+                    {{ preview.dias_habiles }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Cruces
+                </span>
+
+                <strong>
+                    {{ preview.total_conflictos }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        {% if preview.periodo_valido %}
+
+        <div class="perm-validation-ok">
+            ✓ El periodo pasó las validaciones.
+        </div>
+
+        {% else %}
+
+        <div class="perm-validation-error">
+            ⚠ Ya existe una solicitud pendiente o autorizada
+            que cruza con este periodo.
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const inicio =
+            document.getElementById("fecha_inicio");
+
+        const final =
+            document.getElementById("fecha_final");
+
+        const hoy =
+            "{{ hoy_iso }}";
+
+
+        function actualizarFinal() {
+
+            if (!inicio || !final) {
+                return;
+            }
+
+            final.min =
+                inicio.value || hoy;
+
+
+            if (
+                final.value &&
+                inicio.value &&
+                final.value < inicio.value
+            ) {
+                final.value = "";
+            }
+        }
+
+
+        inicio.addEventListener(
+            "change",
+            function () {
+
+                actualizarFinal();
+
+                if (
+                    inicio.value &&
+                    !final.value
+                ) {
+                    final.value =
+                        inicio.value;
+                }
+            }
+        );
+
+
+        actualizarFinal();
+
+    }
+);
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA Personal - Notificaciones
+{% endblock %}
+
+{% block breadcrumb %}
+Notificaciones
+{% endblock %}
+
+
+{% block content %}
+
+<style>
+
+    .nova-push-page {
+        max-width: 1100px;
+    }
+
+    .nova-push-header h1 {
+        margin: 0;
+        color: #092441;
+        font-size: 32px;
+        font-weight: 800;
+    }
+
+    .nova-push-header p {
+        margin: 7px 0 22px;
+        color: #536b84;
+        font-size: 15px;
+    }
+
+    .nova-push-card {
+        display: grid;
+        grid-template-columns:
+            70px 1fr;
+        gap: 18px;
+
+        padding: 24px;
+
+        background: #ffffff;
+
+        border:
+            1px solid #dce5ef;
+
+        border-radius: 16px;
+
+        box-shadow:
+            0 6px 20px
+            rgba(20, 48, 80, .05);
+    }
+
+    .nova-push-icon {
+        width: 58px;
+        height: 58px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 15px;
+
+        background: #eaf3ff;
+
+        font-size: 28px;
+    }
+
+    .nova-push-card h2 {
+        margin: 0 0 6px;
+        color: #0c2744;
+        font-size: 21px;
+    }
+
+    .nova-push-card p {
+        margin: 0 0 16px;
+        color: #5b7087;
+    }
+
+    .nova-push-status {
+        padding: 12px 14px;
+        margin-bottom: 16px;
+
+        border-radius: 10px;
+
+        font-weight: 700;
+        font-size: 14px;
+
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .nova-push-status.is-success {
+        background: #e9fbf0;
+        color: #08783c;
+    }
+
+    .nova-push-status.is-error {
+        background: #fff0f0;
+        color: #b42318;
+    }
+
+    .nova-push-status.is-neutral {
+        background: #eef5ff;
+        color: #205493;
+    }
+
+    .nova-push-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .nova-push-actions button {
+        border: 0;
+        border-radius: 10px;
+
+        padding: 11px 17px;
+
+        font: inherit;
+        font-weight: 800;
+
+        cursor: pointer;
+    }
+
+    .nova-push-actions button:disabled {
+        cursor: not-allowed;
+        opacity: .5;
+    }
+
+    #novaPushEnable {
+        background: #176bff;
+        color: white;
+    }
+
+    #novaPushTest {
+        background: #e8eef5;
+        color: #102d4a;
+    }
+
+    #novaPushDisable {
+        background: #fff0f0;
+        color: #c22e2e;
+    }
+
+    .nova-push-info {
+        margin-top: 18px;
+
+        display: grid;
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+
+        gap: 14px;
+    }
+
+    .nova-push-info article {
+        padding: 18px;
+
+        background: #fff;
+
+        border:
+            1px solid #dce5ef;
+
+        border-radius: 14px;
+    }
+
+    .nova-push-info span {
+        display: block;
+        margin-bottom: 5px;
+
+        color: #60758c;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .nova-push-info strong {
+        color: #0b2947;
+        font-size: 19px;
+    }
+
+</style>
+
+
+<div
+    class="nova-push-page"
+    id="novaPushSettings"
+    data-public-key="{{ vapid_public_key }}"
+>
+
+    <div class="nova-push-header">
+
+        <h1>
+            🔔 Notificaciones
+        </h1>
+
+        <p>
+            Activa las notificaciones de NOVA
+            en esta computadora.
+        </p>
+
+    </div>
+
+
+    <section class="nova-push-card">
+
+        <div class="nova-push-icon">
+            🔔
+        </div>
+
+
+        <div>
+
+            <h2>
+                Web Push de NOVA Personal
+            </h2>
+
+            <p>
+                Este dispositivo quedará asociado
+                a tu número de empleado
+                <strong>
+                    {{ numero_empleado }}
+                </strong>.
+            </p>
+
+
+            <div
+                id="novaPushStatus"
+                class="
+                    nova-push-status
+                    is-neutral
+                "
+            >
+                Revisando compatibilidad...
+            </div>
+
+
+            <div class="nova-push-actions">
+
+                <button
+                    type="button"
+                    id="novaPushEnable"
+                >
+                    Activar notificaciones
+                </button>
+
+
+                <button
+                    type="button"
+                    id="novaPushTest"
+                    disabled
+                >
+                    Enviar prueba
+                </button>
+
+
+                <button
+                    type="button"
+                    id="novaPushDisable"
+                    disabled
+                >
+                    Desactivar
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <div class="nova-push-info">
+
+        <article>
+
+            <span>
+                Empleado
+            </span>
+
+            <strong>
+                {{ numero_empleado }}
+            </strong>
+
+        </article>
+
+
+        <article>
+
+            <span>
+                Dispositivos registrados
+            </span>
+
+            <strong id="novaPushDeviceCount">
+                {{ registered_devices }}
+            </strong>
+
+        </article>
+
+    </div>
+
+</div>
+
+
+<script
+    src="/static/notifications.js?v=2"
+></script>
+
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="panel">
+    <h2>Alertas WhatsApp</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; align-items: end;">
+        
+        <div>
+            <label><strong>Fecha</strong></label>
+            <input type="date" id="fecha" value="{{ fecha }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+
+        <div>
+            <label><strong>Estatus</strong></label>
+            <select id="estatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="PENDIENTE" {% if estatus == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                <option value="ENVIADO" {% if estatus == 'ENVIADO' %}selected{% endif %}>Enviado</option>
+                <option value="ERROR" {% if estatus == 'ERROR' %}selected{% endif %}>Error</option>
+            </select>
+        </div>
+
+        <div>
+            <label><strong>Tipo</strong></label>
+            <select id="tipo" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="TODOS" {% if tipo == 'TODOS' %}selected{% endif %}>Todos</option>
+                <option value="RETARDO" {% if tipo == 'RETARDO' %}selected{% endif %}>Retardo</option>
+                <option value="FALTA_ENTRADA" {% if tipo == 'FALTA_ENTRADA' %}selected{% endif %}>Falta entrada</option>
+                <option value="HE_DETECTADA" {% if tipo == 'HE_DETECTADA' %}selected{% endif %}>HE detectada</option>
+            </select>
+        </div>
+
+        <button onclick="aplicarFiltros()" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Consultar</button>
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Mensajes generados</h2>
+    
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Teléfono</th>
+                    <th>Mensaje</th>
+                    <th>Estatus</th>
+                    <th>Intentos</th>
+                    <th>Fecha creación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in registros %}
+                <tr>
+                    <td><strong>{{ row.id }}</strong></td>
+                    <td>{{ row.numero_empleado }}</td>
+                    <td>{{ row.nombre_completo }}</td>
+                    <td>
+                        <span class="badge" style="
+                            {% if row.tipo_alerta == 'RETARDO' %}
+                                background: #fef2f2; color: #dc2626;
+                            {% elif row.tipo_alerta == 'FALTA_ENTRADA' %}
+                                background: #fffbeb; color: #d97706;
+                            {% elif row.tipo_alerta == 'HE_DETECTADA' %}
+                                background: #f0f9ff; color: #0284c7;
+                            {% else %}
+                                background: #f1f5f9; color: #475569;
+                            {% endif %}
+                        ">
+                            {{ row.tipo_alerta }}
+                        </span>
+                    </td>
+                    <td><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 12px;">{{ row.telefono_destino }}</code></td>
+                    <td style="max-width: 300px; word-wrap: break-word;">{{ row.mensaje }}</td>
+                    <td>
+                        <span class="badge" style="
+                            {% if row.estatus == 'ENVIADO' %}
+                                background: #f0fdf4; color: #16a34a;
+                            {% elif row.estatus == 'ERROR' %}
+                                background: #fef2f2; color: #dc2626;
+                            {% else %}
+                                background: #fef3c7; color: #b45309;
+                            {% endif %}
+                        ">
+                            {{ row.estatus }}
+                        </span>
+                    </td>
+                    <td style="text-align: center;"><strong>{{ row.intentos }}</strong></td>
+                    <td style="font-size: 12px; color: #64748b;">{{ row.fecha_creacion }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" style="text-align: center; color: #999; padding: 20px;">No hay alertas registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function aplicarFiltros() {
+    const fecha = document.getElementById('fecha').value;
+    const estatus = document.getElementById('estatus').value;
+    const tipo = document.getElementById('tipo').value;
+    window.location.href = `/alertas?fecha=${fecha}&estatus=${estatus}&tipo=${tipo}`;
+}
+</script>
+
+{% endblock %}

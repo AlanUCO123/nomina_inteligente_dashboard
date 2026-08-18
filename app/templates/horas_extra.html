@@ -1,0 +1,1767 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA Personal - Cierre de Horas Extra{% endblock %}
+{% block breadcrumb %}Cierre de Horas Extra{% endblock %}
+
+{% block content %}
+
+<div class="he-page">
+
+    <!-- =====================================================
+         ENCABEZADO
+         ===================================================== -->
+    <div class="he-page-header">
+        <div>
+            <span class="he-eyebrow">CONTROL DE TIEMPO EXTRA</span>
+
+            <h1>Horas Extra</h1>
+
+            <p>
+                Consulta, validación y cierre de horas extra para nómina.
+            </p>
+        </div>
+
+        <div class="he-header-status">
+            <div class="he-status-icon">⏱</div>
+
+            <div>
+                <span>Periodo seleccionado</span>
+                <strong>
+                    {{ fecha_inicio }} → {{ fecha_fin }}
+                </strong>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         FILTROS
+         ===================================================== -->
+    <section class="he-card he-filter-card">
+
+        <div class="he-card-header">
+            <div>
+                <h2>🔍 Filtros de consulta</h2>
+
+                <p>
+                    Define el periodo y el conjunto de horas extra que deseas revisar.
+                </p>
+            </div>
+        </div>
+
+        <form method="GET" action="/horas-extra">
+
+            <div class="he-filter-grid">
+
+                <div class="he-field">
+                    <label>Fecha inicio</label>
+
+                    <input
+                        type="date"
+                        name="fecha_inicio"
+                        value="{{ fecha_inicio }}"
+                        required
+                    >
+                </div>
+
+
+                <div class="he-field">
+                    <label>Fecha fin</label>
+
+                    <input
+                        type="date"
+                        name="fecha_fin"
+                        value="{{ fecha_fin }}"
+                        required
+                    >
+                </div>
+
+
+                <div class="he-field">
+                    <label>Departamento</label>
+
+                    <select name="departamento">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        {% for d in departamentos %}
+
+                            <option
+                                value="{{ d.departamento }}"
+                                {% if departamento == d.departamento %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ d.departamento }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+
+                <div class="he-field">
+                    <label>Estatus</label>
+
+                    <select name="estatus">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        <option
+                            value="DETECTADA"
+                            {% if estatus == "DETECTADA" %}selected{% endif %}
+                        >
+                            Detectada
+                        </option>
+
+                        <option
+                            value="CONFIRMADA"
+                            {% if estatus == "CONFIRMADA" %}selected{% endif %}
+                        >
+                            Confirmada
+                        </option>
+
+                        <option
+                            value="MODIFICADA"
+                            {% if estatus == "MODIFICADA" %}selected{% endif %}
+                        >
+                            Modificada
+                        </option>
+
+                        <option
+                            value="AGREGADA_MANUAL"
+                            {% if estatus == "AGREGADA_MANUAL" %}selected{% endif %}
+                        >
+                            Agregada manual
+                        </option>
+
+                        <option
+                            value="NO_CONSIDERAR"
+                            {% if estatus == "NO_CONSIDERAR" %}selected{% endif %}
+                        >
+                            No considerar
+                        </option>
+
+                    </select>
+                </div>
+
+
+                <div class="he-field">
+                    <label>Solicitud TE</label>
+
+                    <select name="solicitud_te">
+
+                        <option
+                            value="TODAS"
+                            {% if solicitud_te == "TODAS" %}selected{% endif %}
+                        >
+                            Todas
+                        </option>
+
+                        <option
+                            value="PROPUESTA"
+                            {% if solicitud_te == "PROPUESTA" %}selected{% endif %}
+                        >
+                            Propuesta para pago
+                        </option>
+
+                        <option
+                            value="CON_SOLICITUD"
+                            {% if solicitud_te == "CON_SOLICITUD" %}selected{% endif %}
+                        >
+                            Con solicitud
+                        </option>
+
+                        <option
+                            value="SIN_SOLICITUD"
+                            {% if solicitud_te == "SIN_SOLICITUD" %}selected{% endif %}
+                        >
+                            Sin solicitud
+                        </option>
+
+                        <option
+                            value="RECLASIFICADA"
+                            {% if solicitud_te == "RECLASIFICADA" %}selected{% endif %}
+                        >
+                            Reclasificada
+                        </option>
+
+                    </select>
+                </div>
+
+
+                <div class="he-filter-action">
+
+                    <button
+                        type="submit"
+                        class="he-btn he-btn-primary"
+                    >
+                        🔎 Consultar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         KPIs
+         ===================================================== -->
+    <div class="he-kpi-grid">
+
+        <div class="he-kpi-card he-kpi-blue">
+
+            <div class="he-kpi-icon">
+                📊
+            </div>
+
+            <div>
+                <span>Registros HE</span>
+
+                <strong id="he-kpi-registros">
+                    {{ kpis.registros_he or 0 }}
+                </strong>
+
+                <small>
+                    Registros visibles
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="he-kpi-card he-kpi-indigo">
+
+            <div class="he-kpi-icon">
+                👥
+            </div>
+
+            <div>
+                <span>Empleados</span>
+
+                <strong id="he-kpi-empleados">
+                    {{ kpis.empleados_con_he or 0 }}
+                </strong>
+
+                <small>
+                    Con tiempo extra
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="he-kpi-card he-kpi-cyan">
+
+            <div class="he-kpi-icon">
+                ⏱
+            </div>
+
+            <div>
+                <span>Horas autorizadas</span>
+
+                <strong id="he-kpi-horas">
+                    {{ kpis.horas_autorizadas or 0 }}
+                </strong>
+
+                <small>
+                    Resultado de nómina
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="he-kpi-card he-kpi-yellow">
+
+            <div class="he-kpi-icon">
+                ⏳
+            </div>
+
+            <div>
+                <span>Pendientes</span>
+
+                <strong>
+                    {{ kpis.pendientes or 0 }}
+                </strong>
+
+                <small>
+                    Requieren revisión
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="he-kpi-card he-kpi-green">
+
+            <div class="he-kpi-icon">
+                ✓
+            </div>
+
+            <div>
+                <span>Confirmadas</span>
+
+                <strong>
+                    {{ kpis.confirmadas or 0 }}
+                </strong>
+
+                <small>
+                    Autorizadas
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="he-kpi-card he-kpi-red">
+
+            <div class="he-kpi-icon">
+                ✕
+            </div>
+
+            <div>
+                <span>No considerar</span>
+
+                <strong>
+                    {{ kpis.no_considerar or 0 }}
+                </strong>
+
+                <small>
+                    Excluidas del cierre
+                </small>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         AGREGAR HE MANUAL
+         ===================================================== -->
+    <details class="he-card he-manual-panel" id="he-manual">
+
+        <summary>
+
+            <div class="he-summary-main">
+
+                <div class="he-summary-icon">
+                    ＋
+                </div>
+
+                <div>
+                    <strong>Agregar HE manual</strong>
+
+                    <span>
+                        Registrar tiempo extra que no provenga de la detección automática.
+                    </span>
+                </div>
+
+            </div>
+
+            <span class="he-summary-arrow">
+                ⌄
+            </span>
+
+        </summary>
+
+
+        <div class="he-manual-content">
+
+            <form
+                method="POST"
+                action="/horas-extra/agregar"
+                class="he-manual-form"
+            >
+
+                <div class="he-field">
+                    <label>Fecha</label>
+
+                    <input
+                        type="date"
+                        name="fecha_operativa"
+                        required
+                    >
+                </div>
+
+
+                <div class="he-field">
+                    <label>No. empleado</label>
+
+                    <input
+                        type="text"
+                        name="numero_empleado"
+                        placeholder="Ej: 12345"
+                        required
+                    >
+                </div>
+
+
+                <div class="he-field">
+                    <label>Departamento</label>
+
+                    <select name="departamento_filtro">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        {% for d in departamentos %}
+
+                            <option value="{{ d.departamento }}">
+                                {{ d.departamento }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="he-field">
+                    <label>Horas</label>
+
+                    <input
+                        type="number"
+                        name="horas_autorizadas"
+                        step="0.5"
+                        min="0"
+                        required
+                    >
+                </div>
+
+
+                <div class="he-field">
+                    <label>Tipo HE</label>
+
+                    <select
+                        name="tipo_tiempo_extra_final"
+                        required
+                    >
+
+                        <option value="">
+                            Seleccionar
+                        </option>
+
+                        <option value="HE_NORMAL">
+                            HE Normal
+                        </option>
+
+                        <option value="HE_DESCANSO">
+                            HE Descanso
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="he-filter-action">
+
+                    <button
+                        type="submit"
+                        class="he-btn he-btn-primary"
+                    >
+                        ＋ Agregar
+                    </button>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="fecha_inicio"
+                    value="{{ fecha_inicio }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="fecha_fin"
+                    value="{{ fecha_fin }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="motivo"
+                    value="HE agregada manualmente"
+                >
+
+            </form>
+
+        </div>
+
+    </details>
+
+
+    <!-- =====================================================
+         CIERRE SEMANAL
+         ===================================================== -->
+    <section class="he-card he-closing-card">
+
+        <div class="he-card-header he-closing-header">
+
+            <div>
+
+                <span class="he-section-label">
+                    CIERRE DE NÓMINA
+                </span>
+
+                <h2>
+                    📋 Cierre por empleado + desglose diario
+                </h2>
+
+                <p>
+                    Comparativo entre tiempo real y tiempo considerado para nómina:
+                    HE dobles, triples y descanso.
+                </p>
+
+            </div>
+
+
+            <div class="he-legend">
+
+                <span>
+                    <i class="he-dot he-dot-blue"></i>
+                    HE normal
+                </span>
+
+                <span>
+                    <i class="he-dot he-dot-yellow"></i>
+                    Día descanso
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Opciones visuales -->
+        <div class="he-view-toolbar">
+
+            <div class="he-view-options">
+
+                <label class="he-toggle">
+
+                    <input
+                        type="checkbox"
+                        id="filterWithHE"
+                        checked
+                    >
+
+                    <span class="he-toggle-box"></span>
+
+                    <strong>
+                        Mostrar solo con HE
+                    </strong>
+
+                </label>
+
+
+                <label class="he-toggle">
+
+                    <input
+                        type="checkbox"
+                        id="filterDecimals"
+                    >
+
+                    <span class="he-toggle-box"></span>
+
+                    <strong>
+                        Solo diferencias Real / Nómina
+                    </strong>
+
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             FORMULARIO MASIVO
+             ================================================= -->
+        <form
+            method="POST"
+            action="/horas-extra/confirmar-seleccionados"
+            id="form-cierre"
+        >
+
+            <input
+                type="hidden"
+                name="fecha_inicio"
+                value="{{ fecha_inicio }}"
+            >
+
+            <input
+                type="hidden"
+                name="fecha_fin"
+                value="{{ fecha_fin }}"
+            >
+
+            <input
+                type="hidden"
+                name="departamento"
+                value="{{ departamento or '' }}"
+            >
+
+
+            <div class="he-action-toolbar">
+
+                <div class="he-action-info">
+
+                    <span class="he-action-icon">
+                        ✓
+                    </span>
+
+                    <div>
+                        <strong>Acciones masivas</strong>
+
+                        <small>
+                            Selecciona uno o varios empleados del cierre.
+                        </small>
+                    </div>
+
+                </div>
+
+
+                <div class="he-action-buttons">
+
+                    <button
+                        type="submit"
+                        class="he-btn he-btn-primary"
+                        onclick="return confirm('¿Confirmar seleccionados?')"
+                    >
+                        ✓ Confirmar seleccionados
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="he-btn he-btn-danger-soft"
+                        onclick="document.getElementById('form-no-considerar').submit()"
+                    >
+                        ✕ No considerar
+                    </button>
+
+
+                    <a
+                        href="#he-manual"
+                        class="he-btn he-btn-secondary"
+                    >
+                        ＋ Agregar HE manual
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 TABLA DE CIERRE
+                 ================================================= -->
+            <div class="he-table-scroll">
+
+                <table class="he-close-table">
+
+                    <thead>
+
+                        <tr class="he-main-head">
+
+                            <th class="he-check-column">
+
+                                <input
+                                    type="checkbox"
+                                    id="check-all-he"
+                                    title="Seleccionar todos"
+                                >
+
+                            </th>
+
+                            <th>Empleado</th>
+
+                            <th>Nombre</th>
+
+                            <th>Departamento</th>
+
+                            <th>Solicitud TE</th>
+
+
+                            {% for d in dias_periodo %}
+
+                                <th class="he-day-header">
+
+                                    <span>
+                                        {{ d.dia }}
+                                    </span>
+
+                                    <strong>
+                                        {{ d.label }}
+                                    </strong>
+
+                                </th>
+
+                            {% endfor %}
+
+
+                            <th
+                                colspan="2"
+                                class="he-group-head he-double-head"
+                            >
+                                HE dobles
+                            </th>
+
+                            <th
+                                colspan="2"
+                                class="he-group-head he-triple-head"
+                            >
+                                HE triples
+                            </th>
+
+                            <th
+                                colspan="2"
+                                class="he-group-head he-rest-head"
+                            >
+                                HE descanso
+                            </th>
+
+                            <th
+                                colspan="2"
+                                class="he-group-head he-total-head"
+                            >
+                                Total HE
+                            </th>
+
+                        </tr>
+
+
+                        <tr class="he-sub-head">
+
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+
+
+                            {% for d in dias_periodo %}
+
+                                <th></th>
+
+                            {% endfor %}
+
+
+                            <th>Real</th>
+                            <th>Nómina</th>
+
+                            <th>Real</th>
+                            <th>Nómina</th>
+
+                            <th>Real</th>
+                            <th>Nómina</th>
+
+                            <th>Real</th>
+                            <th>Nómina</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="he-cierre-body">
+
+                        {% for r in cierre %}
+
+                        <tr
+                            data-empleado="{{ r.numero_empleado }}"
+
+                            data-dobles-real="{{ r.he_dobles_reales or 0 }}"
+                            data-dobles-nomina="{{ r.he_dobles_nomina or 0 }}"
+
+                            data-triples-real="{{ r.he_triples_reales or 0 }}"
+                            data-triples-nomina="{{ r.he_triples_nomina or 0 }}"
+
+                            data-descanso-real="{{ r.he_descanso_reales or 0 }}"
+                            data-descanso-nomina="{{ r.he_descanso_nomina or 0 }}"
+
+                            data-total-real="{{ r.total_he_reales or 0 }}"
+                            data-total-he="{{ r.total_he_nomina or 0 }}"
+                        >
+
+                            <td class="he-check-column">
+
+                                <input
+                                    type="checkbox"
+                                    name="empleados"
+                                    value="{{ r.numero_empleado }}"
+                                >
+
+                            </td>
+
+
+                            <td>
+
+                                <a
+                                    href="/horas-extra/empleado?numero_empleado={{ r.numero_empleado }}&fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}"
+                                    class="he-employee-link"
+                                >
+                                    {{ r.numero_empleado }}
+                                </a>
+
+                            </td>
+
+
+                            <td class="he-name-cell">
+                                {{ r.nombre_completo }}
+                            </td>
+
+
+                            <td>
+                                <span class="he-department">
+                                    {{ r.departamento }}
+                                </span>
+                            </td>
+
+
+                            <td>
+
+                                {% if r.grupo_solicitud_te == "CON_SOLICITUD" %}
+
+                                    <span class="he-badge he-badge-blue">
+                                        Con solicitud
+                                    </span>
+
+                                {% elif r.grupo_solicitud_te == "SIN_SOLICITUD" %}
+
+                                    <span class="he-badge he-badge-gray">
+                                        Sin solicitud
+                                    </span>
+
+                                {% elif r.grupo_solicitud_te == "RECLASIFICADA" %}
+
+                                    <span class="he-badge he-badge-green">
+                                        Reclasificada
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="he-badge he-badge-gray">
+                                        {{ r.grupo_solicitud_te or '-' }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            {% for d in dias_periodo %}
+
+                                {% set key = r.numero_empleado|string ~ '_' ~ d.fecha %}
+
+                                <td class="he-day-cell">
+
+                                    {% if key in grid_map %}
+
+                                        {% set celda = grid_map[key] %}
+
+                                        <a
+                                            href="/horas-extra/detalle-jornada?numero_empleado={{ r.numero_empleado }}&fecha={{ d.fecha }}"
+                                            class="
+                                                he-day-value
+                                                {% if celda.tipo == 'HE_DESCANSO' %}
+                                                    he-day-rest
+                                                {% else %}
+                                                    he-day-normal
+                                                {% endif %}
+                                            "
+                                        >
+
+                                            {% if celda.tipo == 'HE_DESCANSO' %}
+
+                                                <span>D</span>
+                                                {{ celda.horas }}
+
+                                            {% else %}
+
+                                                {{ celda.horas }}
+
+                                            {% endif %}
+
+                                        </a>
+
+                                    {% else %}
+
+                                        <span class="he-empty-day">
+                                            —
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            {% endfor %}
+
+
+                            <td class="he-metric-cell">
+
+                                <small>Real:</small>
+
+                                <strong>
+                                    {{ r.he_dobles_reales or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell he-metric-payroll">
+
+                                <small>Nómina:</small>
+
+                                <strong>
+                                    {{ r.he_dobles_nomina or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell">
+
+                                <small>Real:</small>
+
+                                <strong>
+                                    {{ r.he_triples_reales or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell he-metric-payroll">
+
+                                <small>Nómina:</small>
+
+                                <strong>
+                                    {{ r.he_triples_nomina or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell">
+
+                                <small>Real:</small>
+
+                                <strong>
+                                    {{ r.he_descanso_reales or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell he-metric-payroll">
+
+                                <small>Nómina:</small>
+
+                                <strong>
+                                    {{ r.he_descanso_nomina or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell he-total-real">
+
+                                <small>Real:</small>
+
+                                <strong>
+                                    {{ r.total_he_reales or 0 }}
+                                </strong>
+
+                            </td>
+
+
+                            <td class="he-metric-cell he-total-payroll">
+
+                                <small>Nómina:</small>
+
+                                <strong>
+                                    {{ r.total_he_nomina or 0 }}
+                                </strong>
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr class="he-empty-row">
+
+                            <td
+                                colspan="{% set col_count = 5 + dias_periodo|length + 8 %}{{ col_count }}"
+                            >
+                                No hay horas extra para el periodo seleccionado.
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </form>
+
+
+        <!-- formulario oculto -->
+        <form
+            method="POST"
+            action="/horas-extra/no-considerar-seleccionados"
+            id="form-no-considerar"
+            style="display: none;"
+        >
+
+            <input
+                type="hidden"
+                name="fecha_inicio"
+                value="{{ fecha_inicio }}"
+            >
+
+            <input
+                type="hidden"
+                name="fecha_fin"
+                value="{{ fecha_fin }}"
+            >
+
+            <input
+                type="hidden"
+                name="departamento"
+                value="{{ departamento or '' }}"
+            >
+
+            <input
+                type="hidden"
+                name="motivo"
+                value="No considerado por supervisor"
+            >
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         DETALLE DIARIO
+         ===================================================== -->
+    <details class="he-card he-daily-panel">
+
+        <summary>
+
+            <div class="he-summary-main">
+
+                <div class="he-summary-icon">
+                    📅
+                </div>
+
+                <div>
+
+                    <strong>
+                        Detalle diario autorizable
+                    </strong>
+
+                    <span>
+                        HE detectada, agregada o modificada para revisión.
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="he-detail-summary-right">
+
+                <span class="he-limit-badge">
+                    Máx. 100 registros
+                </span>
+
+                <span class="he-summary-arrow">
+                    ⌄
+                </span>
+
+            </div>
+
+        </summary>
+
+
+        <div class="he-daily-content">
+
+            <div class="he-info-strip">
+
+                <span>ℹ️</span>
+
+                <p>
+                    Por rendimiento, esta sección muestra como máximo
+                    <strong>100 registros</strong> del periodo consultado.
+                </p>
+
+            </div>
+
+
+            <div class="he-table-scroll">
+
+                <table class="he-detail-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Empl.</th>
+                            <th>Nombre</th>
+                            <th>Dpto.</th>
+                            <th>Cat.</th>
+                            <th>Tipo</th>
+                            <th>Detectadas</th>
+                            <th>Autorizadas</th>
+                            <th>Estatus</th>
+                            <th>Autorización</th>
+                            <th>Revisa</th>
+                            <th>Autoriza</th>
+                            <th>Notifica</th>
+                            <th>Flujo</th>
+                            <th>Acciones</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for r in detalle %}
+
+                        <tr>
+
+                            <td>
+                                {{ r.fecha_operativa }}
+                            </td>
+
+
+                            <td>
+                                <strong>
+                                    {{ r.numero_empleado }}
+                                </strong>
+                            </td>
+
+
+                            <td class="he-name-cell">
+                                {{ r.nombre_completo }}
+                            </td>
+
+
+                            <td>
+                                {{ r.departamento }}
+                            </td>
+
+
+                            <td>
+
+                                {% if r.categoria_intelisis == "SINDICALIZADO" %}
+
+                                    <span class="he-badge he-badge-green">
+                                        SIND
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="he-badge he-badge-gray">
+                                        {{ r.categoria_intelisis }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                {% if r.tipo_tiempo_extra_final == "HE_DESCANSO" %}
+
+                                    <span class="he-badge he-badge-yellow">
+                                        DESCANSO
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="he-badge he-badge-blue">
+                                        NORMAL
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td class="he-number-cell">
+                                {{ r.horas_detectadas }}
+                            </td>
+
+
+                            <td class="he-number-cell">
+
+                                <strong>
+                                    {{ r.horas_autorizadas }}
+                                </strong>
+
+                            </td>
+
+
+                            <td>
+
+                                {% if r.estatus == 'CONFIRMADA' %}
+
+                                    <span class="he-badge he-badge-green">
+                                        CONFIRMADA
+                                    </span>
+
+                                {% elif r.estatus == 'NO_CONSIDERAR' %}
+
+                                    <span class="he-badge he-badge-red">
+                                        NO CONSIDERAR
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="he-badge he-badge-yellow">
+                                        {{ r.estatus }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+                                {{ r.estatus_autorizacion }}
+                            </td>
+
+
+                            <td class="he-person-cell">
+                                {{ r.revisor_nombre or '-' }}
+                            </td>
+
+
+                            <td class="he-person-cell">
+                                {{ r.autorizador_nombre or '-' }}
+                            </td>
+
+
+                            <td class="he-person-cell">
+                                {{ r.notificador_nombre or '-' }}
+                            </td>
+
+
+                            <td>
+
+                                {% if r.flujo_autorizacion == "SUPERVISOR_REVISA_GERENTE_AUTORIZA" %}
+
+                                    Supervisor → Gerente
+
+                                {% elif r.flujo_autorizacion == "GERENTE_REVISA_DIRECTOR_AUTORIZA" %}
+
+                                    Gerente → Director
+
+                                {% elif r.flujo_autorizacion == "DIRECTOR_REVISA_CASO_ESPECIAL" %}
+
+                                    Caso especial
+
+                                {% else %}
+
+                                    {{ r.flujo_autorizacion or '-' }}
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="he-row-actions">
+
+                                    <form
+                                        method="POST"
+                                        action="/horas-extra/confirmar"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="{{ r.id }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="fecha_inicio"
+                                            value="{{ fecha_inicio }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="fecha_fin"
+                                            value="{{ fecha_fin }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="departamento"
+                                            value="{{ departamento or '' }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="he-icon-btn he-icon-confirm"
+                                            title="Confirmar"
+                                            onclick="return confirm('¿Confirmar esta HE?')"
+                                        >
+                                            ✓
+                                        </button>
+
+                                    </form>
+
+
+                                    <form
+                                        method="POST"
+                                        action="/horas-extra/no-considerar"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="{{ r.id }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="motivo"
+                                            value="No considerada por RH/Nóminas"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="fecha_inicio"
+                                            value="{{ fecha_inicio }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="fecha_fin"
+                                            value="{{ fecha_fin }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="departamento"
+                                            value="{{ departamento or '' }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="he-icon-btn he-icon-reject"
+                                            title="No considerar"
+                                            onclick="return confirm('¿No considerar esta HE?')"
+                                        >
+                                            ✕
+                                        </button>
+
+                                    </form>
+
+
+                                    <details class="he-modify">
+
+                                        <summary title="Modificar">
+                                            ✎
+                                        </summary>
+
+
+                                        <form
+                                            method="POST"
+                                            action="/horas-extra/modificar"
+                                        >
+
+                                            <input
+                                                type="hidden"
+                                                name="id"
+                                                value="{{ r.id }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="fecha_inicio"
+                                                value="{{ fecha_inicio }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="fecha_fin"
+                                                value="{{ fecha_fin }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="departamento"
+                                                value="{{ departamento or '' }}"
+                                            >
+
+
+                                            <div class="he-field">
+
+                                                <label>Horas</label>
+
+                                                <input
+                                                    type="number"
+                                                    name="horas_autorizadas"
+                                                    step="0.5"
+                                                    min="0"
+                                                    value="{{ r.horas_autorizadas }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="he-field">
+
+                                                <label>Tipo</label>
+
+                                                <select
+                                                    name="tipo_tiempo_extra_final"
+                                                    required
+                                                >
+
+                                                    <option
+                                                        value="HE_NORMAL"
+                                                        {% if r.tipo_tiempo_extra_final == 'HE_NORMAL' %}
+                                                            selected
+                                                        {% endif %}
+                                                    >
+                                                        HE Normal
+                                                    </option>
+
+                                                    <option
+                                                        value="HE_DESCANSO"
+                                                        {% if r.tipo_tiempo_extra_final == 'HE_DESCANSO' %}
+                                                            selected
+                                                        {% endif %}
+                                                    >
+                                                        HE Descanso
+                                                    </option>
+
+                                                </select>
+
+                                            </div>
+
+
+                                            <button
+                                                type="submit"
+                                                class="he-btn he-btn-primary he-btn-full"
+                                            >
+                                                Guardar
+                                            </button>
+
+                                        </form>
+
+                                    </details>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr class="he-empty-row">
+
+                            <td colspan="15">
+                                No hay registros para mostrar.
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </details>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const bodyCierre =
+        document.getElementById("he-cierre-body");
+
+    const filterWithHE =
+        document.getElementById("filterWithHE");
+
+    const filterDecimals =
+        document.getElementById("filterDecimals");
+
+    const checkAll =
+        document.getElementById("check-all-he");
+
+
+    function numero(valor) {
+
+        const n = parseFloat(valor);
+
+        return Number.isFinite(n) ? n : 0;
+    }
+
+
+    function tieneDiferencia(row) {
+
+        const pares = [
+
+            [
+                row.dataset.doblesReal,
+                row.dataset.doblesNomina
+            ],
+
+            [
+                row.dataset.triplesReal,
+                row.dataset.triplesNomina
+            ],
+
+            [
+                row.dataset.descansoReal,
+                row.dataset.descansoNomina
+            ],
+
+            [
+                row.dataset.totalReal,
+                row.dataset.totalHe
+            ]
+
+        ];
+
+
+        return pares.some(function (par) {
+
+            return (
+                numero(par[0]) !== numero(par[1])
+                &&
+                (
+                    numero(par[0]) > 0
+                    ||
+                    numero(par[1]) > 0
+                )
+            );
+
+        });
+    }
+
+
+    function obtenerFilas() {
+
+        if (!bodyCierre) {
+            return [];
+        }
+
+        return Array.from(
+            bodyCierre.querySelectorAll(
+                "tr[data-empleado]"
+            )
+        );
+    }
+
+
+    function actualizarKPIs() {
+
+        const filas = obtenerFilas();
+
+        let registros = 0;
+
+        const empleados = new Set();
+
+        let horas = 0;
+
+
+        filas.forEach(function (row) {
+
+            if (row.style.display === "none") {
+                return;
+            }
+
+            registros += 1;
+
+            empleados.add(
+                row.dataset.empleado
+            );
+
+            horas += numero(
+                row.dataset.totalHe
+            );
+
+        });
+
+
+        const kpiRegistros =
+            document.getElementById(
+                "he-kpi-registros"
+            );
+
+        const kpiEmpleados =
+            document.getElementById(
+                "he-kpi-empleados"
+            );
+
+        const kpiHoras =
+            document.getElementById(
+                "he-kpi-horas"
+            );
+
+
+        if (kpiRegistros) {
+            kpiRegistros.textContent = registros;
+        }
+
+        if (kpiEmpleados) {
+            kpiEmpleados.textContent = empleados.size;
+        }
+
+        if (kpiHoras) {
+            kpiHoras.textContent = horas.toFixed(2);
+        }
+
+    }
+
+
+    function aplicarFiltrosVisuales() {
+
+        const filas = obtenerFilas();
+
+
+        filas.forEach(function (row) {
+
+            let mostrar = true;
+
+
+            if (
+                filterWithHE
+                &&
+                filterWithHE.checked
+            ) {
+
+                if (
+                    numero(
+                        row.dataset.totalHe
+                    ) === 0
+                ) {
+                    mostrar = false;
+                }
+
+            }
+
+
+            if (
+                mostrar
+                &&
+                filterDecimals
+                &&
+                filterDecimals.checked
+            ) {
+
+                if (!tieneDiferencia(row)) {
+                    mostrar = false;
+                }
+
+            }
+
+
+            row.style.display =
+                mostrar ? "" : "none";
+
+        });
+
+
+        actualizarKPIs();
+    }
+
+
+    if (filterWithHE) {
+
+        filterWithHE.addEventListener(
+            "change",
+            aplicarFiltrosVisuales
+        );
+
+    }
+
+
+    if (filterDecimals) {
+
+        filterDecimals.addEventListener(
+            "change",
+            aplicarFiltrosVisuales
+        );
+
+    }
+
+
+    if (checkAll) {
+
+        checkAll.addEventListener(
+            "change",
+            function () {
+
+                obtenerFilas().forEach(
+                    function (row) {
+
+                        if (
+                            row.style.display === "none"
+                        ) {
+                            return;
+                        }
+
+                        const checkbox =
+                            row.querySelector(
+                                'input[name="empleados"]'
+                            );
+
+                        if (checkbox) {
+                            checkbox.checked =
+                                checkAll.checked;
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    aplicarFiltrosVisuales();
+
+});
+</script>
+
+{% endblock %}

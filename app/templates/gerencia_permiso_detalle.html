@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}
+NOVA - Detalle de solicitud
+{% endblock %}
+
+{% block breadcrumb %}
+Gerencia / Autorizar permisos / Detalle
+{% endblock %}
+
+
+{% block content %}
+
+<div class="ger-page ger-detail-page">
+
+    <div class="ger-page-header">
+
+        <div>
+
+            <a
+                href="/gerencia/permisos"
+                class="ger-back"
+            >
+                ← Volver a pendientes
+            </a>
+
+            <span class="ger-eyebrow">
+                SOLICITUD #{{ solicitud.ID_PROCESS }}
+            </span>
+
+            <h1>
+                {{ solicitud.tipo_icono }}
+                {{ solicitud.tipo_nombre }}
+            </h1>
+
+            <p>
+                Revisa el detalle antes de realizar
+                cualquier acción.
+            </p>
+
+        </div>
+
+
+        <div class="ger-readonly-badge">
+            🛡️
+            <span>
+                <strong>Solo consulta</strong>
+                <small>
+                    Autorizar y rechazar siguen bloqueados
+                </small>
+            </span>
+        </div>
+
+    </div>
+
+
+    <section class="ger-card">
+
+        <div class="ger-detail-section">
+
+            <span class="ger-section-label">
+                INFORMACIÓN DEL EMPLEADO
+            </span>
+
+            <div class="ger-employee-detail">
+
+                <div class="ger-employee-avatar">
+                    {{ solicitud.nombre_empleado[:1] }}
+                </div>
+
+                <div>
+                    <small>Empleado</small>
+
+                    <strong>
+                        {{ solicitud.nombre_empleado }}
+                    </strong>
+
+                    <span>
+                        No. {{ solicitud.numero_empleado }}
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="ger-detail-grid">
+
+                <article>
+                    <span>Departamento</span>
+                    <strong>
+                        {{ solicitud.departamento }}
+                    </strong>
+                </article>
+
+                <article>
+                    <span>Categoría</span>
+                    <strong>
+                        {{ solicitud.categoria }}
+                    </strong>
+                </article>
+
+                <article>
+                    <span>Días disponibles</span>
+
+                    <strong>
+                        {% if solicitud.resumen_vacaciones %}
+                            {{ solicitud.resumen_vacaciones.total_disponibles }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </strong>
+                </article>
+
+                <article>
+                    <span>Estado</span>
+                    <strong class="ger-pending-text">
+                        Pendiente de autorización
+                    </strong>
+                </article>
+
+            </div>
+
+        </div>
+
+
+        <div class="ger-detail-section">
+
+            <span class="ger-section-label">
+                DETALLE DE LA SOLICITUD
+            </span>
+
+
+            <div class="ger-detail-grid">
+
+                <article>
+                    <span>Tipo</span>
+
+                    <strong>
+                        {{ solicitud.permisoNombre or solicitud.tipo_nombre }}
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>Fecha solicitada</span>
+
+                    <strong>
+                        {{ solicitud.fecha_solicitud_texto }}
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>Fecha inicial</span>
+
+                    <strong>
+                        {{ solicitud.fecha_inicio_texto }}
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>Fecha final</span>
+
+                    <strong>
+                        {{ solicitud.fecha_final_texto }}
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>Días naturales</span>
+
+                    <strong>
+                        {{ solicitud.diasTotales or 0 }}
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>Días hábiles</span>
+
+                    <strong>
+                        {{ solicitud.diasHabiles or 0 }}
+                    </strong>
+                </article>
+
+
+                {% if solicitud.horaInicio or solicitud.horaFinal %}
+
+                <article>
+                    <span>Hora inicial</span>
+
+                    <strong>
+                        {{ solicitud.hora_inicio_texto or '—' }}
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>Hora final</span>
+
+                    <strong>
+                        {{ solicitud.hora_final_texto or '—' }}
+                    </strong>
+                </article>
+
+                {% endif %}
+
+
+                {% if solicitud.tipoPermisoOtrosDesc %}
+
+                <article>
+                    <span>Descripción del tipo</span>
+
+                    <strong>
+                        {{ solicitud.tipoPermisoOtrosDesc }}
+                    </strong>
+                </article>
+
+                {% endif %}
+
+            </div>
+
+
+            {% if solicitud.motivoPermiso %}
+
+            <div class="ger-reason-box">
+
+                <span>
+                    Motivo
+                </span>
+
+                <p>
+                    {{ solicitud.motivoPermiso }}
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="ger-detail-actions">
+
+            <a
+                href="/gerencia/permisos"
+                class="ger-btn ger-btn-secondary"
+            >
+                ← Salir
+            </a>
+
+
+            <button
+                type="button"
+                class="ger-btn ger-btn-danger"
+                disabled
+                title="Se habilitará cuando conectemos las acciones reales"
+            >
+                ✕ Rechazar
+            </button>
+
+
+            <button
+                type="button"
+                class="ger-btn ger-btn-success"
+                disabled
+                title="Se habilitará cuando conectemos las acciones reales"
+            >
+                ✓ Autorizar
+            </button>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="panel">
+    <form method="get" class="filters">
+        <div>
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha" name="fecha" value="{{ fecha }}" required>
+        </div>
+
+        <div>
+            <label for="empresa">Empresa</label>
+            <select id="empresa" name="empresa">
+                <option value="TODOS" {% if empresa == "TODOS" %}selected{% endif %}>Todos</option>
+                <option value="WYNY" {% if empresa == "WYNY" %}selected{% endif %}>WYNY</option>
+                <option value="LUXMA" {% if empresa == "LUXMA" %}selected{% endif %}>LUXMA</option>
+                <option value="EXTERNO" {% if empresa == "EXTERNO" %}selected{% endif %}>EXTERNO</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="estatus">Estatus</label>
+            <select id="estatus" name="estatus">
+                <option value="TODOS" {% if estatus == "TODOS" %}selected{% endif %}>Todos</option>
+                <option value="EN_TIEMPO" {% if estatus == "EN_TIEMPO" %}selected{% endif %}>En tiempo</option>
+                <option value="RETARDO" {% if estatus == "RETARDO" %}selected{% endif %}>Retardo</option>
+                <option value="FALTA_PROBABLE" {% if estatus == "FALTA_PROBABLE" %}selected{% endif %}>Falta probable</option>
+                <option value="FALTA_ENTRADA" {% if estatus == "FALTA_ENTRADA" %}selected{% endif %}>Falta entrada</option>
+                <option value="PENDIENTE_ENTRADA" {% if estatus == "PENDIENTE_ENTRADA" %}selected{% endif %}>Pendiente entrada</option>
+                <option value="DESCANSO" {% if estatus == "DESCANSO" %}selected{% endif %}>Descanso</option>
+                <option value="PERMISO" {% if estatus == "PERMISO" %}selected{% endif %}>Permiso</option>
+                <option value="VACACIONES" {% if estatus == "VACACIONES" %}selected{% endif %}>Vacaciones</option>
+                <option value="SIN_HORARIO" {% if estatus == "SIN_HORARIO" %}selected{% endif %}>Sin horario</option>
+            </select>
+        </div>
+
+        <button type="submit">Consultar</button>
+    </form>
+</div>
+
+<div class="panel">
+    <form method="post" action="/procesar-dia">
+        <input type="hidden" name="fecha" value="{{ fecha }}">
+        <button type="submit" class="secondary">Reprocesar día</button>
+    </form>
+</div>
+
+<div class="cards">
+    <div class="card ok">
+        <span>En tiempo</span>
+        <strong>{{ tarjetas.EN_TIEMPO }}</strong>
+    </div>
+
+    <div class="card warning">
+        <span>Retardos</span>
+        <strong>{{ tarjetas.RETARDO }}</strong>
+    </div>
+
+    <div class="card danger">
+        <span>Faltas probables</span>
+        <strong>{{ tarjetas.FALTA_PROBABLE }}</strong>
+    </div>
+
+    <div class="card danger">
+        <span>Falta entrada</span>
+        <strong>{{ tarjetas.FALTA_ENTRADA }}</strong>
+    </div>
+
+    <div class="card neutral">
+        <span>Descansos</span>
+        <strong>{{ tarjetas.DESCANSO }}</strong>
+    </div>
+
+    <div class="card info">
+        <span>Permisos</span>
+        <strong>{{ tarjetas.PERMISO }}</strong>
+    </div>
+
+    <div class="card info">
+        <span>Vacaciones</span>
+        <strong>{{ tarjetas.VACACIONES }}</strong>
+    </div>
+
+    <div class="card neutral">
+        <span>Sin horario</span>
+        <strong>{{ tarjetas.SIN_HORARIO }}</strong>
+    </div>
+
+    <div class="card muted">
+        <span>Pendiente entrada</span>
+        <strong>{{ tarjetas.PENDIENTE_ENTRADA }}</strong>
+    </div>
+</div>
+
+<div class="cards">
+    <div class="card info">
+        <span>Personas con HE</span>
+        <strong>{{ resumen_he.personas_he or 0 }}</strong>
+    </div>
+
+    <div class="card warning">
+        <span>HE detectadas</span>
+        <strong>{{ resumen_he.horas_detectadas or 0 }} h</strong>
+    </div>
+
+    <div class="card warning">
+        <span>HE dobles</span>
+        <strong>{{ resumen_he.horas_dobles or 0 }} h</strong>
+    </div>
+
+    <div class="card danger">
+        <span>HE triples</span>
+        <strong>{{ resumen_he.horas_triples or 0 }} h</strong>
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Distribución total del día</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in resumen_empresa %}
+            <tr>
+                <td>{{ row.empresa_origen }}</td>
+                <td>{{ row.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel">
+    <h2>Detalle operativo — {{ empresa }} / {{ estatus }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>Empleado</th>
+                <th>Nombre</th>
+                <th>Departamento</th>
+                <th>Origen horario</th>
+                <th>Turno</th>
+                <th>Intervalo</th>
+                <th>Entrada esperada</th>
+                <th>Salida esperada</th>
+                <th>Primera checada</th>
+                <th>Entrada válida</th>
+                <th>Salida válida</th>
+                <th>Última checada</th>
+                <th>Retardo</th>
+                <th>Estatus</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in detalle %}
+            <tr class="status-{{ row.estatus_dia|lower }}">
+                <td>{{ row.empresa_origen }}</td>
+                <td>{{ row.numero_empleado }}</td>
+                <td>{{ row.nombre_completo }}</td>
+                <td>{{ row.departamento }}</td>
+                <td>{{ row.origen_horario }}</td>
+                <td>{{ row.turno_alias }}</td>
+                <td>{{ row.intervalo_alias }}</td>
+                <td>{{ row.entrada_esperada }}</td>
+                <td>{{ row.salida_esperada }}</td>
+                <td>{{ row.primera_checada }}</td>
+                <td>{{ row.checada_entrada_valida }}</td>
+                <td>{{ row.checada_salida_valida }}</td>
+                <td>{{ row.ultima_checada }}</td>
+                <td>{{ row.minutos_retardo }}</td>
+                <td>
+                    <span class="badge">
+                        {% if row.estatus_dia == 'FALTA_ENTRADA' %}
+                            Sin entrada válida
+                        {% elif row.estatus_dia == 'EN_TIEMPO' %}
+                            En tiempo
+                        {% elif row.estatus_dia == 'RETARDO' %}
+                            Retardo
+                        {% elif row.estatus_dia == 'FALTA_PROBABLE' %}
+                            Falta probable
+                        {% elif row.estatus_dia == 'SIN_HORARIO' %}
+                            Sin horario
+                        {% elif row.estatus_dia == 'DESCANSO' %}
+                            Descanso
+                        {% elif row.estatus_dia == 'PERMISO' %}
+                            Permiso
+                        {% elif row.estatus_dia == 'VACACIONES' %}
+                            Vacaciones
+                        {% elif row.estatus_dia == 'PENDIENTE_ENTRADA' %}
+                            Pendiente entrada
+                        {% else %}
+                            {{ row.estatus_dia }}
+                        {% endif %}
+                    </span>
+                </td>
+                <td>{{ row.observaciones }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel">
+    <h2>Tiempo extra detectado</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Nombre</th>
+                <th>Departamento</th>
+                <th>Categoría</th>
+                <th>Tipo HE</th>
+                <th>Salida esperada</th>
+                <th>Salida válida</th>
+                <th>Minutos</th>
+                <th>Horas</th>
+                <th>Dobles</th>
+                <th>Triples</th>
+                <th>Estatus día</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in tiempo_extra %}
+            <tr>
+                <td>{{ row.numero_empleado }}</td>
+                <td>{{ row.nombre_completo }}</td>
+                <td>{{ row.departamento }}</td>
+                <td>{{ row.categoria_intelisis }}</td>
+                <td>{{ row.tipo_tiempo_extra }}</td>
+                <td>{{ row.salida_esperada }}</td>
+                <td>{{ row.checada_salida_valida }}</td>
+                <td>{{ row.minutos_extra_detectados }}</td>
+                <td>{{ row.horas_extra_detectadas }} h</td>
+                <td>{{ row.horas_extra_dobles }} h</td>
+                <td>{{ row.horas_extra_triples }} h</td>
+                <td>
+                    <span class="badge">
+                        {% if row.estatus_dia == 'FALTA_ENTRADA' %}
+                            Sin entrada válida
+                        {% elif row.estatus_dia == 'EN_TIEMPO' %}
+                            En tiempo
+                        {% elif row.estatus_dia == 'RETARDO' %}
+                            Retardo
+                        {% elif row.estatus_dia == 'FALTA_PROBABLE' %}
+                            Falta probable
+                        {% elif row.estatus_dia == 'SIN_HORARIO' %}
+                            Sin horario
+                        {% elif row.estatus_dia == 'DESCANSO' %}
+                            Descanso
+                        {% elif row.estatus_dia == 'PERMISO' %}
+                            Permiso
+                        {% elif row.estatus_dia == 'VACACIONES' %}
+                            Vacaciones
+                        {% elif row.estatus_dia == 'PENDIENTE_ENTRADA' %}
+                            Pendiente entrada
+                        {% else %}
+                            {{ row.estatus_dia }}
+                        {% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="12" style="text-align: center; color: #999;">No hay tiempo extra detectado</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

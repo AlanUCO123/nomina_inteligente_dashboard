@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}NOVA Personal - Checadas del personal{% endblock %}
+{% block breadcrumb %}Asistencia / Checadas del personal{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Checadas del personal</h1>
+    <p>Consulta de asistencia por jerarquía, departamento y periodo.</p>
+</div>
+
+<div class="card">
+    <div class="section-header">
+        <div>
+            <h3>Filtros</h3>
+            <p>Selecciona el nivel de vista y el periodo a consultar.</p>
+        </div>
+    </div>
+
+    <form method="get" action="/asistencia/personal" class="filters-grid">
+        <div class="form-group">
+            <label>Fecha inicio</label>
+            <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
+        </div>
+
+        <div class="form-group">
+            <label>Fecha fin</label>
+            <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+        </div>
+
+        <div class="form-group">
+            <label>Nivel de vista</label>
+            <select name="nivel">
+                {% for n in niveles_disponibles %}
+                    <option value="{{ n }}" {% if nivel == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Departamento</label>
+            <select name="departamento">
+                <option value="TODOS" {% if departamento == 'TODOS' %}selected{% endif %}>TODOS</option>
+                {% for d in departamentos %}
+                    <option value="{{ d }}" {% if departamento == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button class="btn-primary" type="submit">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div>
+            <span>Empleados</span>
+            <strong>{{ kpis.empleados or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⚠️</div>
+        <div>
+            <span>Retardos</span>
+            <strong class="text-danger-bold">{{ kpis.retardos or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">❌</div>
+        <div>
+            <span>Faltas</span>
+            <strong class="text-danger-bold">{{ kpis.faltas or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">🚪</div>
+        <div>
+            <span>Sin salida</span>
+            <strong class="text-danger-bold">{{ kpis.sin_salida or 0 }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="grid-4 mt-18">
+
+    <div class="kpi-card">
+        <div class="kpi-icon">⏱</div>
+        <div>
+            <span>HE detectada</span>
+            <strong class="text-success-bold">{{ kpis.he_detectada or 0 }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div>
+            <span>HE final</span>
+            <strong class="text-success-bold">{{ kpis.he_final or 0 }}</strong>
+            <span>Nivel</span>
+            <strong>{{ nivel }}</strong>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mt-24">
+    <div class="section-header">
+        <div>
+            <h3>Resumen por {{ nivel | lower }}</h3>
+            <p>Indicadores de asistencia y tiempo extra del periodo seleccionado.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="nova-table">
+            <thead>
+                <tr>
+                    <th>Nivel</th>
+                    <th>Clave</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Empleados</th>
+                    <th>En tiempo</th>
+                    <th>Retardos</th>
+                    <th>Faltas</th>
+                    <th>Sin salida</th>
+                    <th>HE detectada</th>
+                    <th>HE final</th>
+                    <th>HE pendiente</th>
+                    <th>HE confirmada</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in resumen %}
+                <tr>
+                    <td><span class="badge badge-blue">{{ r.nivel }}</span></td>
+                    <td><strong>{{ r.clave or '-' }}</strong></td>
+                    <td>{{ r.nombre or 'SIN ASIGNAR' }}</td>
+                    <td>{{ r.departamento or '-' }}</td>
+                    <td><strong>{{ r.empleados or 0 }}</strong></td>
+                    <td>{{ r.en_tiempo or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.retardos or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.faltas or 0 }}</td>
+                    <td class="text-danger-bold">{{ r.sin_salida or 0 }}</td>
+                    <td class="text-success-bold">{{ "%.2f"|format(r.he_detectada or 0) }}</td>
+                    <td class="text-success-bold"><strong>{{ "%.2f"|format(r.he_final or 0) }}</strong></td>
+                    <td>
+                        {% if r.he_pendiente and r.he_pendiente > 0 %}
+                            <span class="badge badge-yellow">{{ r.he_pendiente }}</span>
+                        {% else %}
+                            <span class="text-muted">0</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.he_confirmada or 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

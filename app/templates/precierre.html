@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="panel">
+    <h2>Precierre de prenómina</h2>
+    
+    <p class="muted">
+        Semana de miércoles a martes: {{ fecha_inicio }} al {{ fecha_fin }}
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; align-items: end;">
+        
+        <div>
+            <label><strong>Miércoles inicial</strong></label>
+            <input type="date" id="fecha_inicio" value="{{ fecha_inicio }}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+
+        <div>
+            <label><strong>Empresa</strong></label>
+            <select id="empresa" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="TODOS" {% if empresa == 'TODOS' %}selected{% endif %}>Todos</option>
+                <option value="WYNY" {% if empresa == 'WYNY' %}selected{% endif %}>WYNY</option>
+                <option value="LUXMA" {% if empresa == 'LUXMA' %}selected{% endif %}>LUXMA</option>
+                <option value="EXTERNO" {% if empresa == 'EXTERNO' %}selected{% endif %}>EXTERNO</option>
+            </select>
+        </div>
+
+        <div>
+            <label><strong>Departamento</strong></label>
+            <select id="departamento" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="TODOS" {% if departamento == 'TODOS' %}selected{% endif %}>Todos</option>
+                {% for d in departamentos %}
+                    <option value="{{ d.departamento }}" {% if departamento == d.departamento %}selected{% endif %}>
+                        {{ d.departamento }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button onclick="aplicarFiltros()" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">Consultar</button>
+        <a href="/" style="display: inline-block; padding: 8px 16px; background: #64748b; color: white; text-decoration: none; border-radius: 4px; text-align: center;">Monitor diario</a>
+        <a href="/historico" style="display: inline-block; padding: 8px 16px; background: #64748b; color: white; text-decoration: none; border-radius: 4px; text-align: center;">Histórico</a>
+    </div>
+</div>
+
+<div class="cards">
+    <div class="card neutral"><span>Empleados</span><strong>{{ resumen_general.empleados or 0 }}</strong></div>
+    <div class="card ok"><span>Asistencias</span><strong>{{ resumen_general.asistencias or 0 }}</strong></div>
+    <div class="card warning"><span>Retardos</span><strong>{{ resumen_general.retardos or 0 }}</strong></div>
+    <div class="card danger"><span>Falta entrada</span><strong>{{ resumen_general.faltas_entrada or 0 }}</strong></div>
+    <div class="card info"><span>Permisos</span><strong>{{ resumen_general.permisos or 0 }}</strong></div>
+    <div class="card muted"><span>Vacaciones</span><strong>{{ resumen_general.vacaciones or 0 }}</strong></div>
+    <div class="card warning"><span>HE dobles</span><strong>{{ resumen_general.he_dobles or 0 }} h</strong></div>
+    <div class="card danger"><span>HE triples</span><strong>{{ resumen_general.he_triples or 0 }} h</strong></div>
+</div>
+
+<div class="panel">
+    <h2>Resumen por departamento</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Departamento</th>
+                <th>Empleados</th>
+                <th>Asistencias</th>
+                <th>Retardos</th>
+                <th>Falta entrada</th>
+                <th>Permisos</th>
+                <th>Vacaciones</th>
+                <th>HE dobles</th>
+                <th>HE triples</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in resumen_departamento %}
+            <tr>
+                <td>{{ row.departamento }}</td>
+                <td>{{ row.empleados }}</td>
+                <td>{{ row.asistencias }}</td>
+                <td>{{ row.retardos }}</td>
+                <td>{{ row.faltas_entrada }}</td>
+                <td>{{ row.permisos }}</td>
+                <td>{{ row.vacaciones }}</td>
+                <td>{{ row.he_dobles }} h</td>
+                <td>{{ row.he_triples }} h</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel">
+    <h2>Detalle empleado por empleado</h2>
+
+    <div class="legend">
+        <span><strong>A</strong> Asistencia</span>
+        <span><strong>R</strong> Retardo</span>
+        <span><strong>FE</strong> Falta entrada</span>
+        <span><strong>F</strong> Falta probable</span>
+        <span><strong>P</strong> Permiso</span>
+        <span><strong>V</strong> Vacaciones</span>
+        <span><strong>D</strong> Descanso</span>
+        <span><strong>SH</strong> Sin horario</span>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Departamento</th>
+                    <th>Empleado</th>
+                    <th>Nombre</th>
+                    <th>Mié<br><small>{{ fechas[0] }}</small></th>
+                    <th>Jue<br><small>{{ fechas[1] }}</small></th>
+                    <th>Vie<br><small>{{ fechas[2] }}</small></th>
+                    <th>Sáb<br><small>{{ fechas[3] }}</small></th>
+                    <th>Dom<br><small>{{ fechas[4] }}</small></th>
+                    <th>Lun<br><small>{{ fechas[5] }}</small></th>
+                    <th>Mar<br><small>{{ fechas[6] }}</small></th>
+                    <th>Retardos</th>
+                    <th>F. Entrada</th>
+                    <th>Permisos</th>
+                    <th>Vacaciones</th>
+                    <th>HE Dobles</th>
+                    <th>HE Triples</th>
+                    <th>Min. Retardo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in detalle %}
+                <tr>
+                    <td>{{ row.departamento }}</td>
+                    <td>{{ row.numero_empleado }}</td>
+                    <td>{{ row.nombre_completo }}</td>
+                    <td>{{ row.dia_1 }}</td>
+                    <td>{{ row.dia_2 }}</td>
+                    <td>{{ row.dia_3 }}</td>
+                    <td>{{ row.dia_4 }}</td>
+                    <td>{{ row.dia_5 }}</td>
+                    <td>{{ row.dia_6 }}</td>
+                    <td>{{ row.dia_7 }}</td>
+                    <td>{{ row.retardos }}</td>
+                    <td>{{ row.faltas_entrada }}</td>
+                    <td>{{ row.permisos }}</td>
+                    <td>{{ row.vacaciones }}</td>
+                    <td>{{ row.he_dobles }} h</td>
+                    <td>{{ row.he_triples }} h</td>
+                    <td>{{ row.minutos_retardo_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function aplicarFiltros() {
+    const fecha = document.getElementById('fecha_inicio').value;
+    const empresa = document.getElementById('empresa').value;
+    const departamento = document.getElementById('departamento').value;
+    window.location.href = `/precierre?fecha_inicio=${fecha}&empresa=${empresa}&departamento=${departamento}`;
+}
+</script>
+
+{% endblock %}

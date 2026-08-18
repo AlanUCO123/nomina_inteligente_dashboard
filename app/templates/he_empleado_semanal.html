@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 24px;">
+        <a href="/horas-extra?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}" class="link-back">← Volver a Cierre semanal</a>
+    </div>
+
+    <!-- Card de información del empleado -->
+    <div class="section-card">
+        <div class="section-title">
+            <h2>👤 Detalle semanal de HE - {{ empleado.nombre_completo if empleado else 'Empleado no encontrado' }}</h2>
+            {% if empleado %}
+                <p style="font-size: 0.9em; color: #64748b;">
+                    <strong>Clave:</strong> {{ empleado.numero_empleado }} | 
+                    <strong>Dpto:</strong> {{ empleado.departamento }} | 
+                    <strong>Cat:</strong> {{ empleado.categoria }}
+                </p>
+            {% endif %}
+        </div>
+
+        {% if not empleado %}
+        <div style="padding: 16px; background: #fee2e2; border-radius: 8px; color: #991b1b;">
+            ❌ No se encontró información del empleado {{ numero_empleado }}
+        </div>
+        {% else %}
+
+        <!-- Matriz semanal -->
+        <div class="table-wrapper">
+            <table style="font-size: 0.9em;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="text-align: left;">Día</th>
+                        {% for d in dias_periodo %}
+                        <th style="text-align: center; min-width: 100px;">
+                            <strong>{{ d.dia }}</strong><br>
+                            <small style="color: #64748b;">{{ d.label }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Fila: Checadas -->
+                    <tr style="border-top: 2px solid #e2e8f0;">
+                        <td style="font-weight: 600; background: #f8fafc;">Checadas</td>
+                        {% for d in dias_periodo %}
+                        <td style="text-align: center; background: #fafbfc;">
+                            {% if d.fecha in checadas_map %}
+                                {% set c = checadas_map[d.fecha] %}
+                                <small>
+                                    <strong>{{ c.total_checadas }}</strong><br>
+                                    <span style="color: #64748b; font-size: 0.8em;">
+                                        {% if c.primera_checada %}{{ c.primera_checada[11:16] }}{% else %}-{% endif %} 
+                                        a 
+                                        {% if c.ultima_checada %}{{ c.ultima_checada[11:16] }}{% else %}-{% endif %}
+                                    </span>
+                                </small>
+                            {% else %}
+                                <span style="color: #cbd5e1;">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Fila: HE Detectadas -->
+                    <tr>
+                        <td style="font-weight: 600; background: #f8fafc;">HE Detectadas</td>
+                        {% for d in dias_periodo %}
+                        <td style="text-align: center;">
+                            {% if d.fecha in he_map %}
+                                {% set hes = he_map[d.fecha] %}
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    {% for he in hes %}
+                                    <small>
+                                        <span style="color: #1d4ed8; font-weight: 600;">{{ he.horas_detectadas }}</span>
+                                        <br>
+                                        <span style="font-size: 0.75em; color: #64748b;">{{ he.tipo_tiempo_extra_final }}</span>
+                                    </small>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span style="color: #cbd5e1;">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Fila: HE Autorizadas -->
+                    <tr>
+                        <td style="font-weight: 600; background: #f8fafc;">HE Autorizadas</td>
+                        {% for d in dias_periodo %}
+                        <td style="text-align: center;">
+                            {% if d.fecha in he_map %}
+                                {% set hes = he_map[d.fecha] %}
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    {% for he in hes %}
+                                    <small>
+                                        <span style="color: #059669; font-weight: 600;">{{ he.horas_autorizadas }}</span>
+                                        <br>
+                                        <span class="badge {% if he.estatus == 'CONFIRMADA' %}success{% elif he.estatus == 'NO_CONSIDERAR' %}danger{% else %}warning{% endif %}" style="font-size: 0.7em; padding: 2px 6px;">
+                                            {{ he.estatus }}
+                                        </span>
+                                    </small>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span style="color: #cbd5e1;">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Fila: Estatus de Autorización -->
+                    <tr style="border-bottom: 2px solid #e2e8f0;">
+                        <td style="font-weight: 600; background: #f8fafc;">Flujo</td>
+                        {% for d in dias_periodo %}
+                        <td style="text-align: center; font-size: 0.8em;">
+                            {% if d.fecha in he_map %}
+                                {% set hes = he_map[d.fecha] %}
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    {% for he in hes %}
+                                    <small style="color: #64748b;">
+                                        {% if he.flujo_autorizacion == "SUPERVISOR_REVISA_GERENTE_AUTORIZA" %}
+                                            👤 → 👨‍💼
+                                        {% elif he.flujo_autorizacion == "GERENTE_REVISA_DIRECTOR_AUTORIZA" %}
+                                            👨‍💼 → 👔
+                                        {% elif he.flujo_autorizacion == "DIRECTOR_REVISA_CASO_ESPECIAL" %}
+                                            👔 🔴
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </small>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span style="color: #cbd5e1;">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Resumen semanal -->
+        <div style="margin-top: 20px; padding: 16px; background: #f1f5f9; border-radius: 8px;">
+            <h3 style="margin-top: 0; font-size: 1em;">📊 Resumen de la semana</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                <div>
+                    <small style="color: #64748b;">Total HE Detectadas</small>
+                    <p style="margin: 4px 0; font-size: 1.3em; color: #1d4ed8; font-weight: 600;">
+                        {% set total_detectadas = 0 %}
+                        {% for d in dias_periodo %}
+                            {% if d.fecha in he_map %}
+                                {% for he in he_map[d.fecha] %}
+                                    {% set total_detectadas = total_detectadas + (he.horas_detectadas or 0) %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ total_detectadas }}
+                    </p>
+                </div>
+                <div>
+                    <small style="color: #64748b;">Total HE Autorizadas</small>
+                    <p style="margin: 4px 0; font-size: 1.3em; color: #059669; font-weight: 600;">
+                        {% set total_autorizadas = 0 %}
+                        {% for d in dias_periodo %}
+                            {% if d.fecha in he_map %}
+                                {% for he in he_map[d.fecha] %}
+                                    {% set total_autorizadas = total_autorizadas + (he.horas_autorizadas or 0) %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ total_autorizadas }}
+                    </p>
+                </div>
+                <div>
+                    <small style="color: #64748b;">Diferencia</small>
+                    <p style="margin: 4px 0; font-size: 1.3em; color: #d97706; font-weight: 600;">
+                        {% set diff = total_detectadas - total_autorizadas %}
+                        {{ "%.2f"|format(diff) }}
+                    </p>
+                </div>
+                <div>
+                    <small style="color: #64748b;">Confirmadas</small>
+                    <p style="margin: 4px 0; font-size: 1.3em; color: #059669; font-weight: 600;">
+                        {% set confirmadas = 0 %}
+                        {% for d in dias_periodo %}
+                            {% if d.fecha in he_map %}
+                                {% for he in he_map[d.fecha] %}
+                                    {% if he.estatus == 'CONFIRMADA' %}
+                                        {% set confirmadas = confirmadas + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ confirmadas }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalle de cada día (expandible) -->
+        <div style="margin-top: 24px;">
+            <h3>📝 Detalle por día</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for d in dias_periodo %}
+                {% if d.fecha in he_map %}
+                    {% set hes = he_map[d.fecha] %}
+                    <details style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer;">
+                        <summary style="font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+                            <span>{{ d.dia }} {{ d.label }} - {{ hes|length }} registro(s)</span>
+                            <span style="color: #1d4ed8; font-size: 1.2em;">
+                                {% for he in hes %}
+                                    {{ he.horas_detectadas }}
+                                {% endfor %}
+                            </span>
+                        </summary>
+                        
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                            {% for he in hes %}
+                            <div style="margin-bottom: 12px; padding: 12px; background: #f9fafb; border-radius: 6px; border-left: 4px solid #1d4ed8;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9em;">
+                                    <div>
+                                        <small style="color: #64748b;">Tipo</small>
+                                        <p style="margin: 2px 0; font-weight: 600;">{{ he.tipo_tiempo_extra_final }}</p>
+                                    </div>
+                                    <div>
+                                        <small style="color: #64748b;">Estatus</small>
+                                        <p style="margin: 2px 0;">
+                                            <span class="badge {% if he.estatus == 'CONFIRMADA' %}success{% elif he.estatus == 'NO_CONSIDERAR' %}danger{% else %}warning{% endif %}">
+                                                {{ he.estatus }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; font-size: 0.9em;">
+                                    <div>
+                                        <small style="color: #64748b;">Detectadas</small>
+                                        <p style="margin: 2px 0; font-size: 1.1em; color: #1d4ed8; font-weight: 600;">{{ he.horas_detectadas }}</p>
+                                    </div>
+                                    <div>
+                                        <small style="color: #64748b;">Autorizadas</small>
+                                        <p style="margin: 2px 0; font-size: 1.1em; color: #059669; font-weight: 600;">{{ he.horas_autorizadas }}</p>
+                                    </div>
+                                </div>
+
+                                {% if he.motivo or he.observaciones %}
+                                <div style="margin-top: 8px; padding: 8px; background: #fffbeb; border-radius: 4px; border-left: 3px solid #d97706;">
+                                    <small style="color: #92400e;">
+                                        {% if he.motivo %}
+                                            <strong>Motivo:</strong> {{ he.motivo }}<br>
+                                        {% endif %}
+                                        {% if he.observaciones %}
+                                            <strong>Obs:</strong> {{ he.observaciones }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                {% endif %}
+
+                                <div style="margin-top: 8px; font-size: 0.8em; color: #64748b;">
+                                    <small>
+                                        Revisa: <strong>{{ he.revisor_nombre or '-' }}</strong> | 
+                                        Autoriza: <strong>{{ he.autorizador_nombre or '-' }}</strong> | 
+                                        Notifica: <strong>{{ he.notificador_nombre or '-' }}</strong>
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.link-back {
+    display: inline-block;
+    padding: 8px 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    color: #1d4ed8;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.link-back:hover {
+    background: #e2e8f0;
+}
+</style>
+
+{% endblock %}

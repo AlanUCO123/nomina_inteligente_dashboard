@@ -1,0 +1,32 @@
+ALTER VIEW vw_ni_monitor_operativo AS
+SELECT
+    j.fecha_operativa,
+    j.empresa_origen,
+    j.numero_empleado,
+    j.nombre_completo,
+    j.email,
+    j.department_id,
+    j.departamento,
+    j.origen_horario,
+    j.turno_alias,
+    j.day_index,
+    j.intervalo_alias,
+    j.es_descanso,
+    j.entrada_esperada,
+    DATEADD(MINUTE, ISNULL(j.tolerancia_entrada_min, 0), j.entrada_esperada) AS limite_entrada,
+    j.salida_esperada,
+    j.primera_checada,
+    j.ultima_checada,
+    j.checada_entrada_valida,
+    j.checada_salida_valida,
+    j.total_checadas,
+    j.minutos_retardo,
+    j.minutos_salida_temprana,
+    j.minutos_extra_detectados,
+    j.estatus_dia,
+    j.requiere_autorizacion,
+    j.cerrado,
+    j.observaciones,
+    j.fecha_calculo
+FROM ni_jornada_diaria j;
+GO
