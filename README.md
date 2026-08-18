@@ -125,3 +125,5 @@ SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME LIKE 'vw_ni%'
 ## Contacto
 
 Desarrollado para NOVA Personal - Sistema de Nómina Inteligente
+
+Prueba de trabajo colaborativo con Git.
