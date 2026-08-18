@@ -137,3 +137,9 @@ ESTA NUEVA LINEA ES PARA OTRO CAMBIO NUEVO EN EL ARCHIVO O PARA PROBAR LA RAMA N
 Prueba 2 para ver si se pueden hacer varios cambios 
 
 Nuevos cambios paso 3 y 4
+
+Los Nuevos cambios ya estando guardand
+
+luego otra vez volver a guardar w
+
+asi porque es como yo me acostumbro
